@@ -1,4 +1,4 @@
-app = "aurellcard"
+app = "aurellgiracard"
 primary_region = "arn"
 
 [build]
