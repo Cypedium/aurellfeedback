@@ -5,14 +5,14 @@ const jwt = require('jsonwebtoken');
 
 const app = require('../app');
 const User = require('../models/User');
-const Feedback = require('.././models/Feedback');
+const Card = require('.././models/Card');
 
 jest.mock('../models/User');
-jest.mock('../models/Feedback');
+jest.mock('../models/Card');
 
 const JWT_SECRET = '458899HelpMe!';
 
-describe('Auth & Feedback API', () => {
+describe('Auth & Card API', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -62,27 +62,27 @@ describe('Auth & Feedback API', () => {
     expect(res.body.message).toMatch(/Logged out successfully/);
   });
 
-  // 💬 Submit feedback
-  it('should save feedback', async () => {
-    Feedback.mockImplementation(() => ({ save: jest.fn().mockResolvedValue({}) }));
+  // 💬 Submit card
+  it('should save card', async () => {
+    Card.mockImplementation(() => ({ save: jest.fn().mockResolvedValue({}) }));
 
     const res = await request(app)
-      .post('/feedback')
+      .post('/card')
       .send({ rating: 5, comment: 'Great!', productId: 'abc123' });
 
     expect(res.status).toBe(200);
-    expect(res.body.message).toBe('Feedback saved successfully!');
+    expect(res.body.message).toBe('Card saved successfully!');
   });
 
-  // 📊 Get all feedback
-  it('should fetch all feedbacks', async () => {
-    const mockFeedbacks = [{ rating: 5, comment: 'Nice' }];
-    Feedback.find.mockResolvedValue(mockFeedbacks);
+  // 📊 Get all card
+  it('should fetch all cards', async () => {
+    const mockCards = [{ rating: 5, comment: 'Nice' }];
+    Card.find.mockResolvedValue(mockCards);
 
-    const res = await request(app).get('/feedback');
+    const res = await request(app).get('/card');
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockFeedbacks);
+    expect(res.body).toEqual(mockCards);
   });
 
   // 🧑‍🤝‍🧑 Get all users

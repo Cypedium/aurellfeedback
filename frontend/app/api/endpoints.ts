@@ -1,7 +1,7 @@
 // app/api/endpoints.ts
 import api from "./api";
 
-export type Feedback = {
+export type Card = {
   _id?: string;
   rating: number;
   comment: string;
@@ -28,13 +28,13 @@ export const refreshToken = (refreshToken: string) =>
   api.post("/refresh", { refreshToken });
 
 // ⭐ FEEDBACK
-export const submitFeedback = (feedback: Feedback) =>
-  api.post("/feedback", feedback);
+export const submitCard = (card: Card) =>
+  api.post("/card", card);
 
-export const getFeedbacks = () => api.get("/feedbacks");
+export const getCards = () => api.get("/cards");
 
-export const deleteFeedback = (id: string) =>
-  api.delete(`/feedback/${id}`);
+export const deleteCard = (id: string) =>
+  api.delete(`/card/${id}`);
 
 // ⭐ USERS
 export const getUsers = () => api.get("/users");
@@ -43,8 +43,8 @@ export default {
   registerUser,
   logoutUser,
   refreshToken,
-  submitFeedback,
-  getFeedbacks,
+  submitCard,
+  getCards,
   getUsers,
-  deleteFeedback,
+  deleteCard,
 };

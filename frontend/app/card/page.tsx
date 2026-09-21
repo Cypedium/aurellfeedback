@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Feedback from "./Feedback";
+import Card from "./Card";
 
-export default function FeedbackPage() {
+export default function CardPage() {
   const router = useRouter();
   const [allowed, setAllowed] = useState(false);
 
@@ -19,5 +19,5 @@ export default function FeedbackPage() {
 
   if (!allowed) return null; // visa inget innan redirect/allow
 
-  return <Feedback />;
+  return <Card />;
 }

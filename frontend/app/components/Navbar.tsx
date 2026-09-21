@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { handleLogout } from '../utils/logout';
 import styles from './Navbar.module.css';
-import { getFeedbacks, getUsers } from '../api/endpoints';
+import { getCards, getUsers } from '../api/endpoints';
 
 type User = {
   username: string;
@@ -11,7 +11,7 @@ type User = {
   pictureUrl: string;
 };
 
-type Feedback = {
+type Card = {
   _id?: string;
   rating: number;
   comment: string;
@@ -21,7 +21,7 @@ type Feedback = {
 };
 
 const Navbar = () => {
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [cards, setCards] = useState<Card[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const [users, setUsers] = useState<User[]>([]);
@@ -29,12 +29,12 @@ const Navbar = () => {
 
   useEffect(() => {
 
-    const fetchFeedbacks = async () => {
+    const fetchCards = async () => {
       try {
-        const response = await getFeedbacks();
-        setFeedbacks(response.data);
+        const response = await getCards();
+        setCards(response.data);
       } catch (err: any) {
-        console.error('Error fetching feedbacks:', err);
+        console.error('Error fetching cards:', err);
       }
     };
 
@@ -52,7 +52,7 @@ const Navbar = () => {
 
     setIsLoggedIn(true);
     setUserName(nameFromStorage || '');
-    fetchFeedbacks();
+    fetchCards();
   }, []);
 
   useEffect(() => {
@@ -73,10 +73,10 @@ const Navbar = () => {
 
       <ul className={`${styles.navLinks} ${menuOpen ? styles.open : styles.closed}`}>
         <li onClick={() => setMenuOpen(false)}>
-          <Link href="/feedback">Create Card</Link>
+          <Link href="/card">Create Card</Link>
         </li>
         <li onClick={() => setMenuOpen(false)}>
-          <Link href="/feedbacks">List of Cards</Link>
+          <Link href="/cards">List of Cards</Link>
         </li>
         <li onClick={() => setMenuOpen(false)}>
           <Link href="/register">Register User</Link>

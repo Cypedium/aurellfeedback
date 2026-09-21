@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://aurellfeedback-backend.fly.dev"
+BASE_URL = "https://aurellcard-backend.fly.dev"
 
 # ---------------------------------------------------
 # 1. Helper: pretty print JSON
@@ -50,31 +50,31 @@ def test_private_routes(access_token):
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    # GET feedbacks
-    print("\nGET /feedbacks (or /feedback depending on backend)")
-    res = requests.get(f"{BASE_URL}/feedbacks", headers=headers)
+    # GET cards
+    print("\nGET /cards (or /card depending on backend)")
+    res = requests.get(f"{BASE_URL}/cards", headers=headers)
     print("Status:", res.status_code)
     try:
         print_json(res.json())
     except:
         print(res.text)
 
-    # POST feedback
-    print("\nPOST /feedback")
-    res = requests.post(f"{BASE_URL}/feedback", json={
-        "message": "Python test feedback",
+    # POST card
+    print("\nPOST /card")
+    res = requests.post(f"{BASE_URL}/card", json={
+        "message": "Python test card",
         "rating": 5
     }, headers=headers)
     print("Status:", res.status_code)
     created = res.json()
     print_json(created)
 
-    feedback_id = created.get("id")
+    card_id = created.get("id")
 
-    # DELETE feedback
-    if feedback_id:
-        print(f"\nDELETE /feedback/{feedback_id}")
-        res = requests.delete(f"{BASE_URL}/feedback/{feedback_id}", headers=headers)
+    # DELETE card
+    if card_id:
+        print(f"\nDELETE /card/{card_id}")
+        res = requests.delete(f"{BASE_URL}/card/{card_id}", headers=headers)
         print("Status:", res.status_code)
         try:
             print_json(res.json())
@@ -98,7 +98,7 @@ def test_refresh(refresh_token):
 # 5. Run all tests
 # ---------------------------------------------------
 if __name__ == "__main__":
-    print("🚀 Testing AurellFeedback backend...\n")
+    print("🚀 Testing AurellCard backend...\n")
 
     access_token, refresh_token = test_public_routes()
 

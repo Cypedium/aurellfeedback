@@ -4,11 +4,11 @@ import { LayoutItem, ResponsiveGridLayout } from 'react-grid-layout';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import debounce from 'lodash.debounce';
-import styles from './feedbacks.module.css';
+import styles from './Cards.module.css';
 import api from '../api/api'; // ⭐ axios-instansen
-import { deleteFeedback } from '../api/endpoints';
+import { deleteCard } from '../api/endpoints';
 
-type Feedback = {
+type Card = {
     _id?: string;
     rating: number;
     comment: string;
@@ -26,26 +26,26 @@ type UserLayout = {
 const DEFAULT_LAYOUT: UserLayout = { cols: 6, headers: [] };
 
 export default function Home() {
-    const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+    const [cards, setCards] = useState<Card[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [userLayout, setUserLayout] = useState<UserLayout>(DEFAULT_LAYOUT);
     const [gridLayout, setGridLayout] = useState<LayoutItem[]>([]);
     const [userName, setUserName] = useState('');
 
-    // 🔥 Hämta feedback via api.ts (token-rotation ingår)
+    // 🔥 Hämta card via api.ts (token-rotation ingår)
     useEffect(() => {
-        const fetchFeedbacks = async () => {
+        const fetchCards = async () => {
             try {
-                const res = await api.get('/feedback');
-                setFeedbacks(res.data || []);
+                const res = await api.get('/card');
+                setCards(res.data || []);
             } catch (err: any) {
-                console.error('Error fetching feedbacks:', err);
-                setError('Error fetching feedbacks: ' + err.message);
+                console.error('Error fetching cards:', err);
+                setError('Error fetching cards: ' + err.message);
             }
         };
 
         setUserName(localStorage.getItem('username') || '');
-        fetchFeedbacks();
+        fetchCards();
     }, []);
 
     // 🔥 Hämta layout från server eller localStorage
@@ -56,7 +56,7 @@ export default function Home() {
                 const merged = { ...DEFAULT_LAYOUT, ...res.data };
                 merged.cols = clampCols(merged.cols);
                 setUserLayout(merged);
-                buildGridLayout(merged, feedbacks);
+                buildGridLayout(merged, cards);
                 return;
             }
         } catch (e) {
@@ -69,22 +69,22 @@ export default function Home() {
             parsed.cols = clampCols(parsed.cols);
             const merged = { ...DEFAULT_LAYOUT, ...parsed };
             setUserLayout(merged);
-            buildGridLayout(merged, feedbacks);
+            buildGridLayout(merged, cards);
         } else {
             setUserLayout(DEFAULT_LAYOUT);
-            buildGridLayout(DEFAULT_LAYOUT, feedbacks);
+            buildGridLayout(DEFAULT_LAYOUT, cards);
         }
     };
 
     loadLayout();
-}, [feedbacks.length]);
+}, [cards.length]);
 
     const clampCols = (n: any) => {
         const num = Number(n) || DEFAULT_LAYOUT.cols;
         return Math.min(10, Math.max(2, Math.floor(num)));
     };
 
-    const buildGridLayout = (layoutConfig: UserLayout, items: Feedback[]) => {
+    const buildGridLayout = (layoutConfig: UserLayout, items: Card[]) => {
         const cols = clampCols(layoutConfig.cols);
         const colWidth = Math.max(1, Math.floor(cols / 3));
         const newLayout: LayoutItem[] = items.map((fb, i) => ({
@@ -99,11 +99,11 @@ export default function Home() {
     };
 
     useEffect(() => {
-        buildGridLayout(userLayout, feedbacks);
+        buildGridLayout(userLayout, cards);
     }, []);
 
     // Debug when null items exists
-    //console.log(feedbacks.map(item => item.submittedAt));
+    //console.log(cards.map(item => item.submittedAt));
 
     // 🔥 Spara layout till server via api.ts
     const saveLayoutToServer = useCallback(
@@ -133,22 +133,22 @@ export default function Home() {
     const updateCols = (cols: number) => {
         const clamped = clampCols(cols);
         const next = { ...userLayout, cols: clamped };
-        buildGridLayout(next, feedbacks);
+        buildGridLayout(next, cards);
         persistLayout(next);
     };
 
-    const deleteFeedbackCard = async (id: string) => {
+    const deleteCardCard = async (id: string) => {
         try {
-            await deleteFeedback(id);
-            setFeedbacks(prev => prev.filter(fb => fb._id !== id));
+            await deleteCard(id);
+            setCards(prev => prev.filter(fb => fb._id !== id));
         } catch (err: any) {
-            console.error('Error deleting feedback:', err);
-            setError(err.message || 'Error deleting feedback');
+            console.error('Error deleting card:', err);
+            setError(err.message || 'Error deleting card');
         }
     };
 
     return (
-        <div id="feedbacks-container">
+        <div id="cards-container">
             <br />
             <h1 className={styles.title}>Aurell Gira Board</h1>
             <div>
@@ -188,7 +188,7 @@ export default function Home() {
             </div>
 
             <div className={styles.wrapper}>
-            {feedbacks.length > 0 ? (
+            {cards.length > 0 ? (
                 <ResponsiveGridLayout
                     className="gridLayout"
                     layouts={{ lg: gridLayout as any }}
@@ -208,21 +208,21 @@ export default function Home() {
                         // persist...
                     }}
                 >
-                    {feedbacks.map((fb) => (  
+                    {cards.map((fb) => (  
                         <div key={fb._id || fb.username + fb.submittedAt} className={styles.card} style={{ padding: 12 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div className="card-handle" style={{ cursor: 'grab', fontWeight: 600 }}>☰</div>
                                 <button className={styles.deleteButton} onClick={() => {
                                     if (userName === fb.username) {
-                                        if (confirm('Are you sure you want to delete this feedback?')) {
+                                        if (confirm('Are you sure you want to delete this card?')) {
                                             if (fb._id) {
-                                                deleteFeedbackCard(fb._id);
+                                                deleteCardCard(fb._id);
                                             } else {
-                                                alert('Feedback ID is missing. Cannot delete.');
+                                                alert('Card ID is missing. Cannot delete.');
                                             }
                                         }
                                     } else {
-                                        alert('You can only delete your own feedback.');
+                                        alert('You can only delete your own card.');
                                     }
                                 }}>
                                     <FontAwesomeIcon icon={faTrash} style={{ color: 'black' }} />
@@ -244,7 +244,7 @@ export default function Home() {
                         </div>
                     ))}
                 </ResponsiveGridLayout>
-            ) : (<p>No feedback found.</p>)
+            ) : (<p>No card found.</p>)
             }
             </div>
 

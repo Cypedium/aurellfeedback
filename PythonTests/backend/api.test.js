@@ -2,9 +2,9 @@
 const request = require("supertest");
 const app = require("../app/app"); // Import the Express app
 
-describe("API tests for aurellfeedback", () => {
-  test("GET /feedbacks should return array", async () => {
-    const res = await request(app).get("/feedback");
+describe("API tests for aurellcard", () => {
+  test("GET /cards should return array", async () => {
+    const res = await request(app).get("/card");
 
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);

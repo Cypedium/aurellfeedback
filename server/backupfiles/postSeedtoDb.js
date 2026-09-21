@@ -2,16 +2,16 @@ const axios = require('axios');
 const fs = require('fs');
 
 // Load JSON data from file
-const feedbackData = JSON.parse(fs.readFileSync('seed.json', 'utf8'));
+const cardData = JSON.parse(fs.readFileSync('seed.json', 'utf8'));
 
 
 
-// Function to post each feedback entry
+// Function to post each card entry
 async function postSeedtoDb() {
-  for (const entry of feedbackData) {
+  for (const entry of cardData) {
     try {
       const { rating, comment, productId, username } = entry;
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/feedback`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/card`, {
         rating,
         comment,
         productId,
@@ -19,9 +19,9 @@ async function postSeedtoDb() {
         withCredentials: true
       }
     );
-      console.log(`✅ Posted feedback for ${username}: ${response.data.message}`);
+      console.log(`✅ Posted card for ${username}: ${response.data.message}`);
     } catch (error) {
-      console.error(`❌ Failed to post feedback for ${entry.username}:`, error.message);
+      console.error(`❌ Failed to post card for ${entry.username}:`, error.message);
     }
   }
 }

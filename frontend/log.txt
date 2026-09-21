@@ -36,7 +36,7 @@
  => => exporting layers                                                                                                                                                                                            27.7s
  => => exporting manifest sha256:6cb3459a5e30f9c3a03348981496ea72266b6176d282a44c4c7d5adf3f87a253                                                                                                                   0.0s
  => => exporting config sha256:ceb63f86f8c73cbaf7189460086177194b125b0860e6427d37a8ce95cfc00ac7                                                                                                                     0.0s
- => => pushing layers for registry.fly.io/aurellfeedback:deployment-01KT8T92A7KP4MSS3PMCA61AEM@sha256:6cb3459a5e30f9c3a03348981496ea72266b6176d282a44c4c7d5adf3f87a253                                              2.9s
+ => => pushing layers for registry.fly.io/aurellcard:deployment-01KT8T92A7KP4MSS3PMCA61AEM@sha256:6cb3459a5e30f9c3a03348981496ea72266b6176d282a44c4c7d5adf3f87a253                                              2.9s
  => => pushing layer sha256:eab8708841e73c8d46fcea8b638d1d75a9900274c411cd2e4cd36e02da596267                                                                                                                        2.9s
  => => pushing layer sha256:ceb63f86f8c73cbaf7189460086177194b125b0860e6427d37a8ce95cfc00ac7                                                                                                                        0.9s
  => => pushing layer sha256:0f90a456e974efad52c854c5628d45246931094939466759c671a9c198c7aee5                                                                                                                        0.2s
@@ -48,16 +48,16 @@
  => => pushing layer sha256:aefcbc9c2a467c8d05b5dcbe08424b437e3a3206bbc31452e4b4799c865eca5a                                                                                                                        0.2s
  => => pushing layer sha256:e171342750f37d4e9e800c556cd3ebd47e4bfbb13ec445da4b60028f39dd7315                                                                                                                        0.4s
  => => pushing layer sha256:3674293c318aea7a707bd7bde2b1f939bcb4e69c744ecd2f24465e0938bedd3a                                                                                                                        0.8s
- => => pushing manifest for registry.fly.io/aurellfeedback:deployment-01KT8T92A7KP4MSS3PMCA61AEM@sha256:6cb3459a5e30f9c3a03348981496ea72266b6176d282a44c4c7d5adf3f87a253                                            0.2s
+ => => pushing manifest for registry.fly.io/aurellcard:deployment-01KT8T92A7KP4MSS3PMCA61AEM@sha256:6cb3459a5e30f9c3a03348981496ea72266b6176d282a44c4c7d5adf3f87a253                                            0.2s
 --> Build Summary:  (​)
 2026/06/04 10:05:14 error releasing builder: deadline_exceeded: context deadline exceeded
 --> Building image done
-image: registry.fly.io/aurellfeedback:deployment-01KT8T92A7KP4MSS3PMCA61AEM
+image: registry.fly.io/aurellcard:deployment-01KT8T92A7KP4MSS3PMCA61AEM
 image size: 479 MB
 
-Watch your deployment at https://fly.io/apps/aurellfeedback/monitoring
+Watch your deployment at https://fly.io/apps/aurellcard/monitoring
 
-Provisioning ips for aurellfeedback
+Provisioning ips for aurellcard
   Dedicated ipv6: 2a09:8280:1::11f:63b0:0
   Shared ipv4: 66.241.125.163
   Add a dedicated ipv4 with: fly ips allocate-v4
@@ -83,7 +83,7 @@ Finished launching new machines
 NOTE: The machines for [app] have services with 'auto_stop_machines = "stop"' that will be stopped when idling
 
 -------
-Checking DNS configuration for aurellfeedback.fly.dev
+Checking DNS configuration for aurellcard.fly.dev
 ✓ DNS configuration verified
 
 ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -123,4 +123,4 @@ Checking DNS configuration for aurellfeedback.fly.dev
 
 🎉  SUCCESS! Your app is live and ready to use!  🎉
 
-Visit: https://aurellfeedback.fly.dev/
+Visit: https://aurellcard.fly.dev/

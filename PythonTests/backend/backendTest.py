@@ -3,7 +3,7 @@ import json
 
 # BASE_URL = "http://localhost:4000"
 
-BASE_URL = "https://aurellfeedback-backend.fly.dev"
+BASE_URL = "https://aurellcard-backend.fly.dev"
 
 # Globala tokens
 access_token = None
@@ -67,17 +67,17 @@ def refresh_access_token():
 
 
 
-def get_all_feedbacks():
+def get_all_cards():
     print("\n--- GET ALL FEEDBACKS (protected) ---")
-    url = f"{BASE_URL}/feedback"
+    url = f"{BASE_URL}/card"
     headers = {"Authorization": f"Bearer {access_token}"}
     res = requests.get(url, headers=headers)
     pretty(res)
 
 
-def create_feedback():
+def create_card():
     print("\n--- CREATE FEEDBACK (protected) ---")
-    url = f"{BASE_URL}/feedback"
+    url = f"{BASE_URL}/card"
     headers = {"Authorization": f"Bearer {access_token}"}
     payload = {
         "rating": 4,
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     register_user()
     login_user()
     refresh_access_token()
-    get_all_feedbacks()
-    create_feedback()
+    get_all_cards()
+    create_card()
 
     print("\n🎉 Klart! Alla routes testade med token‑flöde.")

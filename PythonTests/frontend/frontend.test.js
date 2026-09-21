@@ -14,15 +14,15 @@ const api = require("../api/api");
 const endpoints = require("../api/endpoints");
 
 describe("Frontend API layer", () => {
-  test("getFeedbacks calls /feedbacks", async () => {
+  test("getCards calls /cards", async () => {
     api.get.mockResolvedValue({
       status: 200,
       data: []
     });
 
-    const res = await endpoints.getFeedbacks();
+    const res = await endpoints.getCards();
 
-    expect(api.get).toHaveBeenCalledWith("/feedback");
+    expect(api.get).toHaveBeenCalledWith("/card");
     expect(res.status).toBe(200);
     expect(Array.isArray(res.data)).toBe(true);
   });

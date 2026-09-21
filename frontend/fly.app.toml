@@ -1,4 +1,4 @@
-app = "aurellfeedback"
+app = "aurellcard"
 primary_region = "arn"
 
 [build]

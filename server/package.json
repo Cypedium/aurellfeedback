@@ -1,5 +1,5 @@
 {
-  "name": "aurellfeedback-backend",
+  "name": "aurellcard-backend",
   "version": "1.0.0",
   "private": true,
   "main": "server.js",

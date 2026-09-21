@@ -1,7 +1,7 @@
 const { test, expect } = require("@playwright/test");
 
-test("User can submit feedback", async (page: any) => {
-  await page.goto("https://aurellfeedback.fly.dev");
+test("User can submit card", async (page: any) => {
+  await page.goto("https://aurellcard.fly.dev");
 
   await page.fill('input[name="name"]', "Test User");
   await page.fill('textarea[name="message"]', "This is a test message");

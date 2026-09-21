@@ -1,9 +1,9 @@
 // Step Init, Get tokenresponse
-curl -X POST https://aurellfeedback-backend.fly.dev/auth/login -H "Content-Type: application/json" -d '{"username": "Admin", "password": "123456789!Admin"}'
+curl -X POST https://aurellcard-backend.fly.dev/auth/login -H "Content-Type: application/json" -d '{"username": "Admin", "password": "123456789!Admin"}'
 
 response => token (accessToken)
 
-// Step get feedbackList
+// Step get cardList
 
-curl -X GET https://aurellfeedback-backend.fly.dev/feedbacks \
+curl -X GET https://aurellcard-backend.fly.dev/cards \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMzhlOTEyYmI1YTdkZTAwYzY2OTM0MyIsInVzZXJuYW1lIjoiQWRtaW4iLCJpYXQiOjE3ODMzOTM3NjIsImV4cCI6MTc4MzM5NDY2Mn0.3324FGmQSXerr7TdMgSR5r86rF9z9Xmah22y2zsXwC"

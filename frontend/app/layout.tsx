@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aurell Feedback App",
-  description: "Generated for the feedback application",
+  title: "Aurell Card App",
+  description: "Generated for the card application",
 };
 
 export default function RootLayout({

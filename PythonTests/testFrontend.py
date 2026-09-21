@@ -11,8 +11,8 @@ routes = [
         "method": "GET"
     },
     {
-        "name": "Feedback page",
-        "path": "/feedback",
+        "name": "Card page",
+        "path": "/card",
         "method": "GET"
     },
     {

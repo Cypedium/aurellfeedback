@@ -9,7 +9,7 @@ export default function HomePage() {
     const token = localStorage.getItem("accessToken");
 
     if (token) {
-      router.replace("/feedbacks");
+      router.replace("/cards");
     } else {
       router.replace("/login");
     }

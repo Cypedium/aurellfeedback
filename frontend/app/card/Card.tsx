@@ -1,8 +1,8 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from './feedback.module.css';
-import { submitFeedback } from '../api/endpoints';
+import styles from './Card.module.css';
+import { submitCard } from '../api/endpoints';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { sv } from 'date-fns/locale/sv';
 import leoProfanity from "leo-profanity";
@@ -12,7 +12,7 @@ registerLocale('sv', sv);
 leoProfanity.loadDictionary();
 leoProfanity.loadDictionary('sv');
 
-export default function Feedback() {
+export default function Card() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [userName, setUserName] = useState<string>('');
   const [rating, setRating] = useState<number>(0);
@@ -37,7 +37,7 @@ export default function Feedback() {
     }
 
     try {
-      const res = await submitFeedback({
+      const res = await submitCard({
         rating,
         comment,
         productId,
@@ -45,14 +45,14 @@ export default function Feedback() {
         submittedAt: selectedDate?.toISOString() || new Date().toISOString()
       });
 
-      const feedbackResult = res.data;
+      const cardResult = res.data;
 
       if (res.status !== 200) {
-        setMessage(feedbackResult.message || 'Failed to submit feedback.');
+        setMessage(cardResult.message || 'Failed to submit card.');
         return;
       }
 
-      setMessage(feedbackResult.message || 'Feedback submitted!');
+      setMessage(cardResult.message || 'Card submitted!');
       setRating(0);
       setComment('');
       setProductId('');
@@ -64,7 +64,7 @@ export default function Feedback() {
 
     } catch (error) {
       console.error('Submission error:', error);
-      setMessage('Failed to submit feedback.');
+      setMessage('Failed to submit card.');
     }
   };
 
@@ -124,7 +124,7 @@ export default function Feedback() {
       />
 
       <button className={styles.buttonCreate} type="submit">
-        Submit Feedback
+        Submit Card
       </button>
 
       {message && <p style={{ marginTop: '12px' }}>{message}</p>}

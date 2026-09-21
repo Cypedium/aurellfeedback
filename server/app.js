@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://aurellfeedback.fly.dev'
+    'https://aurellcard.fly.dev'
   ],
   credentials: true  
 }));
@@ -29,15 +29,15 @@ function safeRequireRoute(relPath) {
 }
 
 /*
-  Mount routes. Using explicit mount points (/auth, /feedback, /users)
+  Mount routes. Using explicit mount points (/auth, /card, /users)
   keeps route structure clear and avoids accidental route collisions.
   Adjust the relative paths below if your routes live elsewhere.
 */
 const authRoutes = safeRequireRoute('./routes/auth');
 if (authRoutes) app.use('/auth', authRoutes);
 
-const feedbackRoutes = safeRequireRoute('./routes/feedback');
-if (feedbackRoutes) app.use('/feedback', feedbackRoutes);
+const cardRoutes = safeRequireRoute('./routes/card');
+if (cardRoutes) app.use('/card', cardRoutes);
 
 const userRoutes = safeRequireRoute('./routes/user');
 if (userRoutes) app.use('/user', userRoutes);

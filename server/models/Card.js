@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const feedbackSchema = new mongoose.Schema({
+const cardSchema = new mongoose.Schema({
     rating: { type: Number, required: true },
     comment: { type: String, required: true },
     productId: { type: String, required: true },
@@ -8,4 +8,4 @@ const feedbackSchema = new mongoose.Schema({
     submittedAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Feedback', feedbackSchema);
+module.exports = mongoose.model('Card', cardSchema);

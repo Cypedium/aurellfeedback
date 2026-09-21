@@ -6,4 +6,4 @@ Crud for the cards
     Remove
     Update
     Delete
-Datepicker for Update / Feedback
+Datepicker for Update / Card
