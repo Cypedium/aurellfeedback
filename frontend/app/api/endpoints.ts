@@ -31,7 +31,7 @@ export const refreshToken = (refreshToken: string) =>
 export const submitFeedback = (feedback: Feedback) =>
   api.post("/feedback", feedback);
 
-export const getFeedbacks = () => api.get("/feedback");
+export const getFeedbacks = () => api.get("/feedbacks");
 
 export const deleteFeedback = (id: string) =>
   api.delete(`/feedback/${id}`);

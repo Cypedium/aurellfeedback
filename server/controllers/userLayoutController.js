@@ -1,4 +1,4 @@
-/* // server/controllers/userController.js
+// server/controllers/userController.js
 const User = require("../models/User");
 
 // GET ALL USERS (public or admin)
@@ -86,4 +86,3 @@ exports.updateLayout = async (req, res) => {
     res.status(500).json({ message: "Failed to update layout." });
   }
 };
- */

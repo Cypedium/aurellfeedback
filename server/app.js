@@ -37,7 +37,7 @@ const authRoutes = safeRequireRoute('./routes/auth');
 if (authRoutes) app.use('/auth', authRoutes);
 
 const feedbackRoutes = safeRequireRoute('./routes/feedback');
-if (feedbackRoutes) app.use('/feedbacks', feedbackRoutes);
+if (feedbackRoutes) app.use('/feedback', feedbackRoutes);
 
 const userRoutes = safeRequireRoute('./routes/user');
 if (userRoutes) app.use('/user', userRoutes);

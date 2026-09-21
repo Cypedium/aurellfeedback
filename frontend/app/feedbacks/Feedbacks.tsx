@@ -36,7 +36,7 @@ export default function Home() {
     useEffect(() => {
         const fetchFeedbacks = async () => {
             try {
-                const res = await api.get('/feedbacks');
+                const res = await api.get('/feedback');
                 setFeedbacks(res.data || []);
             } catch (err: any) {
                 console.error('Error fetching feedbacks:', err);

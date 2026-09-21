@@ -30,7 +30,7 @@ export default function LoginForm() {
       localStorage.setItem("refreshToken", data.refreshToken);
 
       alert("Login successful!");
-      window.location.href = "/feedbacks"; // 🔥 redirect efter OK
+      window.location.href = "/feedback"; // 🔥 redirect efter OK
 
       // Redirect om du vill
       // window.location.href = "/dashboard";
