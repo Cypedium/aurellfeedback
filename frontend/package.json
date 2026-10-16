@@ -1,0 +1,39 @@
+{
+  "name": "aurellcard",
+  "version": "1.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^7.2.0",
+    "@fortawesome/react-fontawesome": "^3.3.1",
+    "@prisma/client": "7.8.0",
+    "axios": "^1.16.1",
+    "leo-profanity": "^1.9.0",
+    "lodash.debounce": "^4.0.8",
+    "next": "^15.3.5",
+    "react": "^19.0.0",
+    "react-datepicker": "^9.1.0",
+    "react-dom": "^19.0.0",
+    "react-grid-layout": "^2.2.3",
+    "react-resizable": "^4.0.1"
+  },
+  "devDependencies": {
+    "@flydotio/dockerfile": "^0.7.10",
+    "@playwright/test": "^1.60.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/lodash.debounce": "^4.0.9",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "jest": "^30.4.2",
+    "supertest": "^7.2.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
