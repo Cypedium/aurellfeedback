@@ -42,7 +42,7 @@ api.interceptors.response.use(
 
       const refreshToken = localStorage.getItem("refreshToken");
       if (!refreshToken) {
-        console.warn("No refresh token — redirecting to login");
+        //console.warn("No refresh token — redirecting to login");
         window.location.href = "/login";
         return Promise.reject(error);
       }

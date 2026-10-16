@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './Card.module.css';
-import { submitCard } from '../api/endpoints';
+import { submitCard } from '..//../api/endpoints';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { sv } from 'date-fns/locale/sv';
 import leoProfanity from "leo-profanity";

@@ -73,7 +73,7 @@ const Navbar = () => {
 
       <ul className={`${styles.navLinks} ${menuOpen ? styles.open : styles.closed}`}>
         <li onClick={() => setMenuOpen(false)}>
-          <Link href="/card">Create Card</Link>
+          <Link href="/cards/card">Create Card</Link>
         </li>
         <li onClick={() => setMenuOpen(false)}>
           <Link href="/cards">List of Cards</Link>
