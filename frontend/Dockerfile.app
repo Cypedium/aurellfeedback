@@ -1,29 +1,30 @@
 # --- Builder ---
-# --- Builder ---
-FROM node:22 AS builder
+FROM node:22-slim AS builder
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
-# Kopiera env först (om den finns)
-COPY .env.production .env.production
-
-# Kopiera resten av projektet
 COPY . .
 
-RUN npm run build
+# NEXT_PUBLIC_* values are inlined at build time, so pass them as build args
+# (set in fly.app.toml [build.args] or `--build-arg`)
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+RUN test -n "$NEXT_PUBLIC_API_URL" || (echo "NEXT_PUBLIC_API_URL build arg is required" && exit 1)
+
+RUN npm run build && npm prune --omit=dev
 
 # --- Runner ---
-FROM node:22 AS runner
+FROM node:22-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Kopiera endast det som behövs för runtime
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
+COPY --from=builder --chown=node:node /app/.next ./.next
 
 EXPOSE 3000
+USER node
 CMD ["npm", "start"]

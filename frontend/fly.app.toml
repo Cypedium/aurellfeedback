@@ -4,6 +4,9 @@ primary_region = "arn"
 [build]
   dockerfile = "Dockerfile.app"
 
+[build.args]
+  NEXT_PUBLIC_API_URL = "https://aurellgiracard-backend.fly.dev"
+
 [http_service]
   internal_port = 3000
   force_https = true
