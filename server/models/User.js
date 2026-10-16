@@ -25,6 +25,9 @@ const userSchema = new mongoose.Schema({
   passwordHash: { type: String, required: true },
   pictureUrl: { type: String, default: 'https://example.com/default-profile.png' },
 
+  // Incremented on logout to revoke all outstanding refresh tokens
+  tokenVersion: { type: Number, default: 0 },
+
   // Layout sparas direkt på användaren
   layout: {
     type: LayoutSchema,

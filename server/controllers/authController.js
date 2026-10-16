@@ -1,15 +1,28 @@
 // server/controllers/authController.js
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const { generateAccessToken, generateRefreshToken } = require("../utils/jwt");
+const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require("../utils/jwt");
+const { isNonEmptyString } = require("../utils/validate");
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const REFRESH_SECRET = process.env.REFRESH_SECRET;
+const USERNAME_MAX_LENGTH = 32;
+const PASSWORD_MIN_LENGTH = 6;
+const PASSWORD_MAX_LENGTH = 72; // bcrypt ignores bytes beyond 72
+const PICTURE_MAX_LENGTH = 1.5 * 1024 * 1024; // base64 data URL, ~1 MB image
+const PICTURE_URL_PATTERN = /^(data:image\/[a-z+.-]+;base64,|https?:\/\/)/i;
 
 // ---------------- REGISTER ----------------
 exports.register = async (req, res) => {
   const { username, password, pictureUrl } = req.body;
+
+  if (!isNonEmptyString(username, USERNAME_MAX_LENGTH)) {
+    return res.status(400).json({ message: `Username is required (max ${USERNAME_MAX_LENGTH} characters).` });
+  }
+  if (typeof password !== "string" || password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) {
+    return res.status(400).json({ message: `Password must be ${PASSWORD_MIN_LENGTH}-${PASSWORD_MAX_LENGTH} characters.` });
+  }
+  if (pictureUrl && (typeof pictureUrl !== "string" || pictureUrl.length > PICTURE_MAX_LENGTH || !PICTURE_URL_PATTERN.test(pictureUrl))) {
+    return res.status(400).json({ message: "Invalid profile picture." });
+  }
 
   try {
     const existing = await User.findOne({ username });
@@ -18,12 +31,12 @@ exports.register = async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, passwordHash, pictureUrl });
+    const newUser = new User({ username, passwordHash, pictureUrl: pictureUrl || undefined });
     await newUser.save();
 
     res.status(201).json({ message: "User registered successfully." });
   } catch (err) {
-    console.error("Register error:", err);
+    console.error("Register error:", err.message);
     res.status(500).json({ message: "Error creating user." });
   }
 };
@@ -32,91 +45,71 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { username, password } = req.body;
 
+  if (typeof username !== "string" || typeof password !== "string") {
+    return res.status(400).json({ message: "Username and password are required." });
+  }
+
   try {
     const user = await User.findOne({ username });
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       return res.status(401).json({ message: "Invalid credentials." });
     }
 
-    console.log("User logged in:", username);
-
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    // Frontend använder localStorage → returnera tokens i body
+    // Frontend stores tokens in localStorage → return them in the body
     res.json({
-      accessToken,
-      refreshToken
+      accessToken: generateAccessToken(user),
+      refreshToken: generateRefreshToken(user)
     });
-
   } catch (err) {
-    console.error("Login error:", err);
+    console.error("Login error:", err.message);
     res.status(500).json({ message: "Error logging in." });
   }
 };
 
 // ---------------- LOGOUT ----------------
-exports.logout = (req, res) => {
-  // Stateless logout — frontend tar bort tokens
+// Revokes every refresh token issued to the user by bumping tokenVersion.
+exports.logout = async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (typeof refreshToken === "string") {
+    try {
+      const decoded = verifyRefreshToken(refreshToken);
+      await User.updateOne({ _id: decoded.id }, { $inc: { tokenVersion: 1 } });
+    } catch {
+      // Invalid or expired token: nothing to revoke
+    }
+  }
+
   res.status(200).json({ message: "Logged out successfully." });
 };
 
 // ---------------- REFRESH TOKEN ----------------
-exports.refresh = (req, res) => {
+exports.refresh = async (req, res) => {
   const { refreshToken } = req.body;
 
-  if (!refreshToken) {
+  if (typeof refreshToken !== "string") {
     return res.status(401).json({ message: "No refresh token provided" });
   }
 
-  jwt.verify(refreshToken, REFRESH_SECRET, (err, decoded) => {
-    if (err) {
-      console.error("Refresh token verify error:", err);
+  let decoded;
+  try {
+    decoded = verifyRefreshToken(refreshToken);
+  } catch {
+    return res.status(403).json({ message: "Invalid refresh token" });
+  }
+
+  try {
+    const user = await User.findById(decoded.id);
+    if (!user || (user.tokenVersion ?? 0) !== (decoded.tokenVersion ?? 0)) {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
-    // decoded.id finns nu eftersom generateRefreshToken använder { id: user._id }
-    const newAccessToken = jwt.sign(
-      { id: decoded.id },
-      JWT_SECRET,
-      { expiresIn: "15m" }
-    );
-
-    const newRefreshToken = jwt.sign(
-      { id: decoded.id },
-      REFRESH_SECRET,
-      { expiresIn: "7d" }
-    );
-
     return res.json({
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken
+      accessToken: generateAccessToken(user),
+      refreshToken: generateRefreshToken(user)
     });
-  });
+  } catch (err) {
+    console.error("Refresh error:", err.message);
+    res.status(500).json({ message: "Error refreshing token." });
+  }
 };
-
-// Debug for only local use 
-// controllers/authController.js
-/*
-exports.register = async (req, res) => {
-  // validera/skapande i DB om du vill; annars stub
-  const user = { id: "dev-user-id", email: req.body.email || "dev@example.com" };
-  return res.json({ accessToken: "dev-access-token", user });
-};
-
-exports.login = async (req, res) => {
-  // validera användare i DB om du vill; annars stub
-  const user = { id: "dev-user-id", email: req.body.email || "dev@example.com" };
-  return res.json({ accessToken: "dev-access-token", user });
-};
-
-exports.refresh = (req, res) => {
-  // returnera dummy token utan cookie/verifiering
-  return res.json({ accessToken: "dev-access-token", expiresIn: 3600 });
-};
-
-exports.logout = (req, res) => {
-  // rensa cookie om den finns, men utan verifiering
-  res.clearCookie && res.clearCookie("refreshToken");
-  return res.json({ message: "Logged out (dev mode)" });
-}; */
