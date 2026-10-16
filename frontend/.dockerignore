@@ -1,5 +1,5 @@
-# Dependencies
-node_modules
+# Dependencies (any depth)
+**/node_modules
 .pnp
 .pnp.*
 .yarn/*
@@ -29,12 +29,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Env files (behåll .env.production om du vill kopiera den)
-.env
-.env.local
-.env.development
-.env.test
-.env.production.local
+# Env files: NEXT_PUBLIC_API_URL is passed as a build arg (fly.app.toml)
+.env*
 
 # Vercel
 .vercel

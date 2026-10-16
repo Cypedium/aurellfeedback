@@ -1,26 +1,21 @@
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { logoutUser } from "../api/endpoints";
 
-// utils/logout.ts or inside your component
+export const clearSession = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("username");
+};
+
 export const handleLogout = async () => {
+  const refreshToken = localStorage.getItem("refreshToken");
+
   try {
-    // Inform backend that user logs out (optional but recommended)
-    await fetch('/logout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        refreshToken: localStorage.getItem('refreshToken')
-      })
-    });
-
-    // Remove BOTH tokens
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-
-    // Redirect to login
-    window.location.href = '/login';
-
+    // Revokes the refresh token server-side
+    if (refreshToken) await logoutUser(refreshToken);
   } catch (err) {
-    console.error('Logout failed:', err);
+    console.error("Logout request failed:", err);
+  } finally {
+    clearSession();
+    window.location.href = "/login";
   }
 };

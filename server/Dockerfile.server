@@ -1,20 +1,19 @@
-FROM node:22
+FROM node:22-slim
 
-# Arbetskatalog i containern (kan heta vad som helst)
 WORKDIR /server
 
-# Kopiera bara backendens package.json
-COPY . ./
+# Install dependencies first so this layer is cached between code changes
+COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Installera backendens dependencies
-RUN npm install --production
-
-# Kopiera backendens filer
 COPY . .
 
-# Fly.io sätter PORT automatiskt
+# Secrets (MONGO_URI, JWT_SECRET, REFRESH_SECRET, CLIENT_URL) come from `fly secrets`
 ENV NODE_ENV=production
+ENV PORT=4000
 
 EXPOSE 4000
+
+USER node
 
 CMD ["node", "server.js"]

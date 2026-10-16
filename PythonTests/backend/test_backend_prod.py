@@ -1,7 +1,9 @@
 import requests
 import json
+import os
 
-BASE_URL = "https://aurellcard-backend.fly.dev"
+# Set API_URL to target another environment, e.g. https://aurellgiracard-backend.fly.dev
+BASE_URL = os.environ.get("API_URL", "http://localhost:4000")
 
 # ---------------------------------------------------
 # 1. Helper: pretty print JSON
@@ -52,7 +54,7 @@ def test_private_routes(access_token):
 
     # GET cards
     print("\nGET /cards (or /card depending on backend)")
-    res = requests.get(f"{BASE_URL}/cards", headers=headers)
+    res = requests.get(f"{BASE_URL}/card", headers=headers)
     print("Status:", res.status_code)
     try:
         print_json(res.json())
@@ -87,25 +89,18 @@ def test_private_routes(access_token):
 def test_refresh(refresh_token):
     print("\n=== TEST: REFRESH TOKEN ===")
 
-    headers = {"Authorization": f"Bearer {refresh_token}"}
-
-    print("\nGET /auth/refresh")
-    res = requests.get(f"{BASE_URL}/auth/refresh", headers=headers)
+    print("\nPOST /auth/refresh")
+    res = requests.post(f"{BASE_URL}/auth/refresh", json={"refreshToken": refresh_token})
     print("Status:", res.status_code)
     print_json(res.json())
-
 # ---------------------------------------------------
 # 5. Run all tests
 # ---------------------------------------------------
 if __name__ == "__main__":
     print("🚀 Testing AurellCard backend...\n")
-
     access_token, refresh_token = test_public_routes()
-
     if access_token:
         test_private_routes(access_token)
-
     if refresh_token:
         test_refresh(refresh_token)
-
     print("\n🎉 Done! All routes tested.")

@@ -1,9 +1,10 @@
 import requests
 import json
+import os
 
-# BASE_URL = "http://localhost:4000"
 
-BASE_URL = "https://aurellcard-backend.fly.dev"
+# Set API_URL to target another environment, e.g. https://aurellgiracard-backend.fly.dev
+BASE_URL = os.environ.get("API_URL", "http://localhost:4000")
 
 # Globala tokens
 access_token = None

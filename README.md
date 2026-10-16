@@ -1,47 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aurell Gira Board
 
-## Getting Started
+A small issue/feedback board. Logged-in users create cards (issue key, summary, priority 1–5, date), see everyone's cards on a drag-and-drop grid, and delete their own. Each user's grid layout is saved server-side.
 
-## Fast Setup
+| Part | Stack | Folder | Fly app |
+|---|---|---|---|
+| Frontend | Next.js 15 (App Router), React 19, TypeScript, Tailwind 4 | [`frontend/`](frontend) | `aurellgiracard` |
+| Backend | Node 22, Express 5, Mongoose 9 (CommonJS) | [`server/`](server) | `aurellgiracard-backend` |
+| Database | MongoDB | — | external (`MONGO_URI`) |
 
-FE
-npm run dev
+## Getting started
 
-BE
-node server.js
-
-[Open](http://localhost:3000]) in your browser
-
-First, run the development server:
+Requires Node 22 and a MongoDB connection string.
 
 ```bash
+# Backend (http://localhost:4000)
+cd server
+cp .env.example .env   # then fill in the values
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Frontend (http://localhost:3000)
+cd frontend
+echo NEXT_PUBLIC_API_URL=http://localhost:4000 > .env.local
+npm ci
+npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**`server/.env`** (never commit — use `fly secrets set` in production)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Name | Description |
+|---|---|
+| `MONGO_URI` | MongoDB connection string |
+| `JWT_SECRET` | Secret for 15-minute access tokens |
+| `REFRESH_SECRET` | Secret for 7-day refresh tokens (must differ from `JWT_SECRET`) |
+| `PORT` | Port to listen on (`4000`) |
+| `CLIENT_URL` | Comma-separated allowed CORS origins. Default: `http://localhost:3000,https://aurellgiracard.fly.dev` |
 
-## Learn More
+**Frontend**
 
-To learn more about Next.js, take a look at the following resources:
+| Name | Description |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | Backend base URL. Inlined at build time: `.env.local` for dev, `[build.args]` in `fly.app.toml` for production |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your card and contributions are welcome!
+| Folder | Command | What it does |
+|---|---|---|
+| `server` | `npm run dev` / `npm start` | Start API with nodemon / node |
+| `server` | `npm test` | Jest + Supertest API tests (models mocked, no DB needed) |
+| `frontend` | `npm run dev` | Next dev server |
+| `frontend` | `npm run build` | Production build (includes type check) |
+| `frontend` | `npm test` | Jest unit tests |
 
-## Deploy on Vercel
+`PythonTests/` holds manual smoke scripts that call a running API: `API_URL=http://localhost:4000 python PythonTests/backend/test_backend_prod.py`. They create real users and cards.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## API
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+All routes except `/auth/*` and `/health` require `Authorization: Bearer <accessToken>`. An expired or invalid access token returns `401`; the frontend then calls `/auth/refresh` automatically.
 
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/auth/register` | `{ username, password, pictureUrl? }` → `201` |
+| `POST` | `/auth/login` | `{ username, password }` → `{ accessToken, refreshToken }` |
+| `POST` | `/auth/refresh` | `{ refreshToken }` → new `{ accessToken, refreshToken }` |
+| `POST` | `/auth/logout` | `{ refreshToken }` → revokes all of the user's refresh tokens |
+| `GET` | `/card` | All cards, newest first |
+| `POST` | `/card` | `{ rating (1–5), comment, productId, submittedAt? }` → `201`. Author is taken from the token |
+| `DELETE` | `/card/:id` | Delete a card; `403` unless it is your own |
+| `GET` | `/user` | Users (`username`, `pictureUrl`) |
+| `GET` | `/user/usernames` | Usernames only |
+| `GET` | `/user/layout` | Current user's board layout |
+| `PUT` | `/user/layout` | `{ cols?, headers?, cards? }` — merge and save layout |
+| `GET` | `/health` | `{ status: "ok" }` |
+
+Errors are returned as `{ message }`.
+
+## Deployment
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs server tests and the frontend type check, tests and build on every PR and push to `master`. Pushes to `master` then deploy both apps to Fly.io (requires the `FLY_API_TOKEN` repository secret).
+
+Manual deploy: `fly deploy -c fly.server.toml` in `server/`, `fly deploy -c fly.app.toml` in `frontend/` (or the `deploy-*.bat` scripts).
+
+Backend secrets must be set on Fly once:
+
+```bash
+fly secrets set -a aurellgiracard-backend MONGO_URI=... JWT_SECRET=... REFRESH_SECRET=... CLIENT_URL=https://aurellgiracard.fly.dev
+```

@@ -1,11 +1,12 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './Card.module.css';
 import { submitCard } from '..//../api/endpoints';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { sv } from 'date-fns/locale/sv';
 import leoProfanity from "leo-profanity";
+import { isAxiosError } from 'axios';
 
 
 registerLocale('sv', sv);
@@ -14,19 +15,12 @@ leoProfanity.loadDictionary('sv');
 
 export default function Card() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [userName, setUserName] = useState<string>('');
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState<string>('');
   const [message, setMessage] = useState<string | null>(null);
   const [productId, setProductId] = useState<string>('');
   const router = useRouter();
   const datePickerRef = useRef<any>(null);
-
-  // Load username from localStorage ONCE
-  useEffect(() => {
-    const stored = localStorage.getItem('username');
-    setUserName(stored || '');
-  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -36,23 +30,21 @@ export default function Card() {
       return;
     }
 
+    if (rating < 1) {
+      setMessage('Please select a priority.');
+      return;
+    }
+
     try {
+      // Author is taken from the access token by the backend
       const res = await submitCard({
         rating,
         comment,
         productId,
-        username: userName,   // FIXED
         submittedAt: selectedDate?.toISOString() || new Date().toISOString()
       });
 
-      const cardResult = res.data;
-
-      if (res.status !== 200) {
-        setMessage(cardResult.message || 'Failed to submit card.');
-        return;
-      }
-
-      setMessage(cardResult.message || 'Card submitted!');
+      setMessage(res.data.message || 'Card submitted!');
       setRating(0);
       setComment('');
       setProductId('');
@@ -64,7 +56,8 @@ export default function Card() {
 
     } catch (error) {
       console.error('Submission error:', error);
-      setMessage('Failed to submit card.');
+      const serverMessage = isAxiosError(error) ? error.response?.data?.message : null;
+      setMessage(serverMessage || 'Failed to submit card.');
     }
   };
 
