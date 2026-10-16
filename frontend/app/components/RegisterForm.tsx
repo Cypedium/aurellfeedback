@@ -1,9 +1,23 @@
 'use client';
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { isAxiosError } from "axios";
 import checkPasswordStrength from "../utils/checkPasswordStrength";
 import { registerUser } from "../api/endpoints";
 
+// Base64 grows ~33%, so this stays under the backend's 1.5 MB data-URL limit
+const MAX_PICTURE_BYTES = 1024 * 1024;
+
+const readAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
 export default function RegisterForm() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -23,43 +37,23 @@ export default function RegisterForm() {
       return;
     }
 
+    if (pictureFile && pictureFile.size > MAX_PICTURE_BYTES) {
+      setError("Profile picture must be smaller than 1 MB.");
+      return;
+    }
+
     setError("");
 
     try {
-      let pictureUrl = null;
+      const pictureUrl = pictureFile ? await readAsDataUrl(pictureFile) : "";
 
-      // Convert picture to Base64 if uploaded
-      if (pictureFile) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          pictureUrl = reader.result as string;
-          localStorage.setItem("pictureUrl", pictureUrl);
-
-          const res = await registerUser({ username, password, pictureUrl });
-
-          if (res.status !== 201) {
-            setError(res.data.message || "Registration failed.");
-            return;
-          }
-
-          alert(res.data.message);
-        };
-        reader.readAsDataURL(pictureFile);
-        return;
-      }
-
-      // No picture uploaded
-      const res = await registerUser({ username, password, pictureUrl: '' });
-
-      if (res.status !== 201) {
-        setError(res.data.message || "Registration failed.");
-        return;
-      }
+      const res = await registerUser({ username, password, pictureUrl });
 
       alert(res.data.message);
-
+      router.push("/login");
     } catch (err) {
-      setError("Registration failed. Please try again.");
+      const message = isAxiosError(err) ? err.response?.data?.message : null;
+      setError(message || "Registration failed. Please try again.");
     }
   };
 
