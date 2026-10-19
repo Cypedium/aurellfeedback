@@ -8,7 +8,6 @@ import {
 import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import debounce from "lodash.debounce";
-import styles from "./Cards.module.css";
 import api from "../api/api"; // ⭐ axios-instansen
 import { deleteCard } from "../api/endpoints";
 import CardForm from "./card/Card";
@@ -47,6 +46,10 @@ const ROW_HEIGHT = 150;
 
 // Jira-liknande avatarfärger, väljs stabilt per användarnamn
 const AVATAR_COLORS = ["#0052cc", "#00875a", "#ff5630", "#6554c0", "#ff991f", "#00a3bf"];
+
+// Edit- och delete-knapparna syns när man hovrar över kortet
+const CARD_ACTION_CLASS =
+  "no-drag absolute top-2 rounded-[3px] px-1.5 py-1 text-jira-secondary opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-jira-neutral";
 
 const avatarColor = (name: string) => {
   let hash = 0;
@@ -166,11 +169,14 @@ export default function Home() {
   return (
     <div id="cards-container">
       <br />
-      <h1 className={styles.title}>Aurell Gira Board</h1>
-      <div className={styles.boardScroll}>
-        <div ref={containerRef} className={styles.board}>
+      <h1 className="mb-5 text-center text-[40px] font-bold">Aurell Gira Board</h1>
+      <div className="overflow-x-auto">
+        <div
+          ref={containerRef}
+          className="relative my-4 min-h-[480px] w-full min-w-[720px]"
+        >
           <div
-            className={styles.lanes}
+            className="pointer-events-none absolute inset-0 grid"
             style={{
               padding: `0 ${GRID_MARGIN}px`,
               gap: GRID_MARGIN,
@@ -178,9 +184,14 @@ export default function Home() {
             }}
           >
             {DEFAULT_HEADERS.map((h, i) => (
-              <div key={h.key} className={styles.lane}>
-                <span className={styles.laneTitle}>{h.title}</span>
-                <span className={styles.laneCount}>
+              <div
+                key={h.key}
+                className="flex items-start gap-2 rounded-md bg-jira-lane p-3"
+              >
+                <span className="truncate text-xs font-semibold uppercase text-jira-secondary">
+                  {h.title}
+                </span>
+                <span className="text-xs text-jira-subtle">
                   {gridLayout.filter((l) => l.x === i).length}
                 </span>
               </div>
@@ -214,11 +225,11 @@ export default function Home() {
               {cards.map((fb) => (
                 <div
                   key={fb._id || fb.username + fb.submittedAt}
-                  className={styles.card}
+                  className="group relative flex cursor-grab flex-col gap-2 overflow-hidden rounded-md bg-white p-3 font-jira text-sm text-jira-text shadow-[0_1px_1px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] hover:bg-jira-hover"
                 >
                   {userName === fb.username && fb._id && (
                     <button
-                      className={`${styles.editButton} no-drag`}
+                      className={`${CARD_ACTION_CLASS} right-9`}
                       aria-label="Edit card"
                       title="Edit"
                       onClick={() => setEditingCard(fb)}
@@ -228,7 +239,7 @@ export default function Home() {
                   )}
 
                   <button
-                    className={`${styles.deleteButton} no-drag`}
+                    className={`${CARD_ACTION_CLASS} right-2`}
                     aria-label="Delete card"
                     title="Delete"
                     onClick={() => {
@@ -250,16 +261,22 @@ export default function Home() {
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
 
-                  <p className={styles.summary} title={fb.comment}>
+                  <p
+                    className="line-clamp-3 pr-12 leading-5 wrap-anywhere"
+                    title={fb.comment}
+                  >
                     {fb.comment}
                   </p>
 
-                  <span className={styles.dateChip}>
+                  <span className="self-start rounded-[3px] border border-jira-neutral px-1.5 text-xs/5 text-jira-secondary">
                     {fb.submittedAt.substring(0, 10)}
                   </span>
 
-                  <div className={styles.footer}>
-                    <span className={styles.issueType} title="Task">
+                  <div className="mt-auto flex items-center gap-1.5">
+                    <span
+                      className="inline-flex size-4 shrink-0 items-center justify-center rounded-[3px] bg-jira-task text-white"
+                      title="Task"
+                    >
                       <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden>
                         <path
                           d="M3 8.5l3 3 7-7"
@@ -271,15 +288,17 @@ export default function Home() {
                         />
                       </svg>
                     </span>
-                    <span className={styles.issueKey}>{fb.productId}</span>
+                    <span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase text-jira-secondary">
+                      {fb.productId}
+                    </span>
                     <span
-                      className={styles.estimate}
+                      className="min-w-5 shrink-0 rounded-full bg-jira-neutral px-1.5 text-center text-xs/4"
                       title={`Time tracking: ${fb.rating}/5`}
                     >
                       {fb.rating}
                     </span>
                     <span
-                      className={styles.avatar}
+                      className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
                       style={{ background: avatarColor(fb.username) }}
                       title={fb.username}
                     >
@@ -290,7 +309,7 @@ export default function Home() {
               ))}
             </ResponsiveGridLayout>
           ) : (
-            <p className={styles.empty}>No card found.</p>
+            <p className="relative pt-14 text-center">No card found.</p>
           )}
         </div>
       </div>
@@ -299,12 +318,17 @@ export default function Home() {
 
       {editingCard && (
         <div
-          className={styles.modalOverlay}
+          className="fixed inset-0 z-[1000] flex items-start justify-center overflow-y-auto bg-[rgba(9,30,66,0.54)] px-4 py-12"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) setEditingCard(null);
           }}
         >
-          <div role="dialog" aria-modal="true" aria-labelledby="card-form-title">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="card-form-title"
+            className="w-full max-w-[640px]"
+          >
             <CardForm
               card={editingCard}
               onSaved={handleCardSaved}
