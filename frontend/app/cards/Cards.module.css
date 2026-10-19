@@ -43,7 +43,7 @@
   line-height: 20px;
   overflow-wrap: anywhere;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -172,4 +172,50 @@
   .cardList {
     grid-template-columns: 1fr;
   }
+}
+
+/* Board med kolumner (To Do, In Progress, Test, Done) */
+.board {
+  position: relative;
+  min-height: 480px;
+  margin: 16px auto;
+  box-sizing: border-box;
+}
+
+.lanes {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.lane {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 6px;
+  background: #f1f2f4;
+}
+
+.laneTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #44546f;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.laneCount {
+  font-size: 12px;
+  color: #626f86;
+}
+
+.empty {
+  position: relative;
+  padding-top: 56px;
+  text-align: center;
 }

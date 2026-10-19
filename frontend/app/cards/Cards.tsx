@@ -7,6 +7,16 @@ import debounce from "lodash.debounce";
 import styles from "./Cards.module.css";
 import api from "../api/api"; // ⭐ axios-instansen
 import { deleteCard } from "../api/endpoints";
+import {
+  BoardHeader,
+  SavedCardPosition,
+  DEFAULT_HEADERS,
+  MIN_COLS,
+  MAX_COLS,
+  buildCardLayout,
+  clampCols,
+  withDefaultHeaders,
+} from "../utils/boardLayout";
 
 type Card = {
   _id?: string;
@@ -19,11 +29,20 @@ type Card = {
 
 type UserLayout = {
   cols: number;
-  headers: { key: string; title: string }[];
-  cards?: { id: string; x: number; y: number; w: number; h: number }[];
+  headers: BoardHeader[];
+  cards?: SavedCardPosition[];
 };
 
-const DEFAULT_LAYOUT: UserLayout = { cols: 6, headers: [] };
+const DEFAULT_LAYOUT: UserLayout = {
+  cols: DEFAULT_HEADERS.length,
+  headers: DEFAULT_HEADERS,
+};
+
+// Måste matcha ResponsiveGridLayout nedan så att rubrikerna linjerar med kolumnerna
+const BOARD_WIDTH = 1200;
+const GRID_MARGIN = 10;
+const HEADER_HEIGHT = 44;
+const ROW_HEIGHT = 150;
 
 // Jira-liknande avatarfärger, väljs stabilt per användarnamn
 const AVATAR_COLORS = ["#0052cc", "#00875a", "#ff5630", "#6554c0", "#ff991f", "#00a3bf"];
@@ -38,6 +57,7 @@ export default function Home() {
   const [cards, setCards] = useState<Card[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [userLayout, setUserLayout] = useState<UserLayout>(DEFAULT_LAYOUT);
+  const [layoutLoaded, setLayoutLoaded] = useState(false);
   const [gridLayout, setGridLayout] = useState<LayoutItem[]>([]);
   const [userName, setUserName] = useState("");
 
@@ -59,14 +79,18 @@ export default function Home() {
 
   // 🔥 Hämta layout från server eller localStorage
   useEffect(() => {
+    const normalize = (raw: Partial<UserLayout>): UserLayout => ({
+      ...DEFAULT_LAYOUT,
+      ...raw,
+      cols: clampCols(raw.cols),
+      headers: withDefaultHeaders(raw.headers),
+    });
+
     const loadLayout = async () => {
       try {
         const res = await api.get("/user/layout");
         if (res.status === 200) {
-          const merged = { ...DEFAULT_LAYOUT, ...res.data };
-          merged.cols = clampCols(merged.cols);
-          setUserLayout(merged);
-          buildGridLayout(merged, cards);
+          setUserLayout(normalize(res.data || {}));
           return;
         }
       } catch (e) {
@@ -75,60 +99,23 @@ export default function Home() {
         );
       }
 
-      const saved = localStorage.getItem("user_layout");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        parsed.cols = clampCols(parsed.cols);
-        const merged = { ...DEFAULT_LAYOUT, ...parsed };
-        setUserLayout(merged);
-        buildGridLayout(merged, cards);
-      } else {
+      try {
+        const saved = localStorage.getItem("user_layout");
+        setUserLayout(saved ? normalize(JSON.parse(saved)) : DEFAULT_LAYOUT);
+      } catch {
         setUserLayout(DEFAULT_LAYOUT);
-        buildGridLayout(DEFAULT_LAYOUT, cards);
       }
     };
 
-    loadLayout();
+    loadLayout().finally(() => setLayoutLoaded(true));
   }, []);
 
-  const clampCols = (n: any) => {
-    const num = Number(n) || DEFAULT_LAYOUT.cols;
-    return Math.min(10, Math.max(2, Math.floor(num)));
-  };
-
-  const buildHeadersFromLayout = (layout: LayoutItem[], cols: number) => {
-    const headers = [];
-
-    for (let i = 0; i < cols; i++) {
-      const colItem = layout.find((item) => item.x === i);
-      headers.push({
-        key: `col-${i}`,
-        title: `Kolumn ${i + 1}`,
-        x: i, // samma start som kolumnen
-        w: colItem?.w || 1,
-      });
-    }
-
-    return headers;
-  };
-
-  const buildGridLayout = (layoutConfig: UserLayout, items: Card[]) => {
-    const cols = clampCols(layoutConfig.cols);
-    const colWidth = Math.max(1, Math.floor(cols / 3));
-    const newLayout: LayoutItem[] = items.map((fb, i) => ({
-      i: fb._id || String(i),
-      x: (i * colWidth) % cols,
-      y: Math.floor((i * colWidth) / cols) * 2,
-      w: colWidth,
-      h: 2,
-      static: false,
-    }));
-
-    const headers = buildHeadersFromLayout(newLayout, cols);
-
-    setGridLayout(newLayout);
-    return headers;
-  };
+  // Bygg gridden när både kort och layout finns (och när antal kolumner ändras)
+  useEffect(() => {
+    if (!layoutLoaded) return;
+    const ids = cards.map((fb, i) => fb._id || String(i));
+    setGridLayout(buildCardLayout(ids, userLayout.cards, userLayout.cols));
+  }, [cards, layoutLoaded, userLayout.cols]);
 
   // 🔥 Spara layout till server via api.ts
   const saveLayoutToServer = useCallback(
@@ -149,24 +136,8 @@ export default function Home() {
     saveLayoutToServer(next);
   };
 
-  const onLayoutChange = (layout: LayoutItem[]) => {
-    setGridLayout(layout);
-    const cards = layout.map((l) => ({
-      id: l.i,
-      x: l.x,
-      y: l.y,
-      w: l.w,
-      h: l.h,
-    }));
-    persistLayout({ ...userLayout, cards });
-  };
-
   const updateCols = (cols: number) => {
-    const clamped = clampCols(cols);
-    const next = { ...userLayout, cols: clamped };
-
-    const headers = buildGridLayout(next, cards);
-    persistLayout({ ...next, headers });
+    persistLayout({ ...userLayout, cols: clampCols(cols) });
   };
 
   const deleteCardCard = async (id: string) => {
@@ -178,6 +149,9 @@ export default function Home() {
       setError(err.response?.data?.message || err.message || "Error deleting card");
     }
   };
+
+  const cols = clampCols(userLayout.cols);
+  const lanes = Array.from({ length: cols }, (_, i) => userLayout.headers[i]);
 
   return (
     <div id="cards-container">
@@ -191,7 +165,10 @@ export default function Home() {
             onChange={(e) => updateCols(Number(e.target.value))}
             style={{ marginLeft: 8 }}
           >
-            {Array.from({ length: 9 }, (_, i) => i + 2).map((n) => (
+            {Array.from(
+              { length: MAX_COLS - MIN_COLS + 1 },
+              (_, i) => i + MIN_COLS,
+            ).map((n) => (
               <option key={n} value={n}>
                 {n}
               </option>
@@ -230,23 +207,38 @@ export default function Home() {
         </div>
       </div>
 
-      <div className={styles.wrapper}>
-        {cards.length > 0 ? (
+      <div className={styles.board} style={{ width: BOARD_WIDTH }}>
+        <div
+          className={styles.lanes}
+          style={{
+            padding: `0 ${GRID_MARGIN}px`,
+            gap: GRID_MARGIN,
+            gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          }}
+        >
+          {lanes.map((h, i) => (
+            <div key={h?.key || `lane-${i}`} className={styles.lane}>
+              <span className={styles.laneTitle}>{h?.title || ""}</span>
+              <span className={styles.laneCount}>
+                {gridLayout.filter((l) => l.x === i).length}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {!layoutLoaded ? null : cards.length > 0 ? (
           <ResponsiveGridLayout
             className="gridLayout"
-            layouts={{ lg: gridLayout as any }}
-            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-            cols={{
-              lg: clampCols(userLayout.cols),
-              md: clampCols(userLayout.cols),
-              sm: Math.min(clampCols(userLayout.cols), 4),
-              xs: 2,
-              xxs: 1,
-            }}
-            rowHeight={120}
-            width={1200}
+            layouts={{ lg: gridLayout }}
+            breakpoints={{ lg: 0 }}
+            cols={{ lg: cols }}
+            rowHeight={ROW_HEIGHT}
+            width={BOARD_WIDTH}
+            margin={[GRID_MARGIN, GRID_MARGIN]}
+            containerPadding={[GRID_MARGIN, HEADER_HEIGHT]}
             dragConfig={{ cancel: ".no-drag" }}
             onLayoutChange={(currentLayout) => {
+              setGridLayout([...currentLayout]);
               const cards = currentLayout.map((l) => ({
                 id: l.i,
                 x: l.x,
@@ -326,7 +318,7 @@ export default function Home() {
             ))}
           </ResponsiveGridLayout>
         ) : (
-          <p>No card found.</p>
+          <p className={styles.empty}>No card found.</p>
         )}
       </div>
 
