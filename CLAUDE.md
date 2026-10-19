@@ -7,16 +7,16 @@ Project-specific instructions for Aurell Gira Board. Where this file is more spe
 Before changing any file for a new **feature**, **bug** or **fix** request (in English or Swedish, e.g. "lägg till", "fixa", "buggen"):
 
 1. Run `git branch --show-current` and `git status --short`.
-2. **On `master`** → create a branch before editing anything:
+2. **On `main`** → create a branch before editing anything:
    ```bash
    git pull --ff-only
    git switch -c feature/<short-kebab-desc>   # new feature or improvement
    git switch -c fix/<short-kebab-desc>       # bug or fix
    ```
    For non-code work (docs, config, CLAUDE.md) use `docs/<desc>` or `chore/<desc>`. Tell the user the branch name in one line.
-3. **On another branch** → if the request continues that branch's work (the user says "on the same branch", or it is a follow-up to it), stay. If it is unrelated, or the branch is already merged (`git branch --merged master` lists it), ask whether to start a new branch from `master`.
+3. **On another branch** → if the request continues that branch's work (the user says "on the same branch", or it is a follow-up to it), stay. If it is unrelated, or the branch is already merged (`git branch --merged main` lists it), ask whether to start a new branch from `main`.
 4. **Uncommitted changes** → leave the known local edit to `server/.env` alone (never stage it). Anything else: ask before switching branches.
-5. Re-check the branch before every commit — the user may have switched or merged in between. Never commit, push or merge to `master`.
+5. Re-check the branch before every commit — the user may have switched or merged in between. Never commit, push or merge to `main`.
 
 ## Layout
 
@@ -44,7 +44,7 @@ cd server   && npm test                                  # API tests
 cd frontend && npx tsc --noEmit && npm test && npm run build
 ```
 
-CI (`.github/workflows/ci.yml`) runs exactly these on pushes and PRs to `master`; run them before committing. There is no ESLint/Prettier config yet — `next lint` is not set up.
+CI (`.github/workflows/ci.yml`) runs exactly these on pushes and PRs to `main`; run them before committing. There is no ESLint/Prettier config yet — `next lint` is not set up.
 
 ## Conventions
 
@@ -66,7 +66,7 @@ CI (`.github/workflows/ci.yml`) runs exactly these on pushes and PRs to `master`
 
 ## Deployment
 
-Pushes to `master` deploy both Fly apps after CI passes (`fly.server.toml`, `fly.app.toml`, region `arn`). Changing Dockerfiles, Fly configs or workflows affects production — call it out in the PR.
+Pushes to `main` deploy both Fly apps after CI passes (`fly.server.toml`, `fly.app.toml`, region `arn`). Changing Dockerfiles, Fly configs or workflows affects production — call it out in the PR.
 
 ## Data model
 
@@ -79,5 +79,5 @@ Schema changes need the user's approval.
 
 - Branch names: `feature/<desc>`, `fix/<desc>`, `docs/<desc>`, `chore/<desc>` — see "Branch check" above.
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`), small focused commits.
-- Push the branch and open a PR against `master`; never merge it yourself.
-- The GitHub CLI (`gh`) is not installed here. If `gh` is missing, give the user the compare link `https://github.com/Cypedium/aurellfeedback/compare/master...<branch>?expand=1` plus a ready-to-paste title and description.
+- Push the branch and open a PR against `main`; never merge it yourself.
+- The GitHub CLI (`gh`) is not installed here. If `gh` is missing, give the user the compare link `https://github.com/Cypedium/aurellfeedback/compare/main...<branch>?expand=1` plus a ready-to-paste title and description.

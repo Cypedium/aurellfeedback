@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   server:
@@ -46,7 +46,7 @@ jobs:
   deploy:
     name: Deploy ${{ matrix.app }} to Fly.io
     needs: [server, frontend]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     concurrency: deploy-${{ matrix.app }}
     strategy:
