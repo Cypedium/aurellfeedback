@@ -166,7 +166,7 @@ export default function Home() {
       setCards((prev) => prev.filter((fb) => fb._id !== id));
     } catch (err: any) {
       console.error("Error deleting card:", err);
-      setError(err.message || "Error deleting card");
+      setError(err.response?.data?.message || err.message || "Error deleting card");
     }
   };
 
@@ -343,7 +343,7 @@ export default function Home() {
         )}
       </div>
 
-      {error && <div style={{ color: "red", marginTop: 12 }}></div>}
+      {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
     </div>
   );
 }

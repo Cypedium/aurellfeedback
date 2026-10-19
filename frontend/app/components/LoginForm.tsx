@@ -16,7 +16,6 @@ export default function LoginForm() {
       });
 
       const data = await res.json();
-      console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
 
       if (!res.ok) {
         throw new Error(data.message || "Login failed");
@@ -29,11 +28,7 @@ export default function LoginForm() {
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
 
-      alert("Login successful!");
-      window.location.href = "/card"; // 🔥 redirect efter OK
-
-      // Redirect om du vill
-      // window.location.href = "/dashboard";
+      window.location.href = "/cards";
 
     } catch (error: any) {
       alert(error.message || "An unexpected error occurred");
