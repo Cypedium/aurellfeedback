@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './Card.module.css';
-import { submitCard } from '..//../api/endpoints';
+import { submitCard, updateCard, type Card as CardData } from '..//../api/endpoints';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { sv } from 'date-fns/locale/sv';
 import leoProfanity from "leo-profanity";
@@ -17,12 +17,22 @@ leoProfanity.loadDictionary('sv');
 
 const PRIORITIES = [1, 2, 3, 4, 5];
 
-export default function Card() {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [rating, setRating] = useState<number>(0);
-  const [comment, setComment] = useState<string>('');
+type CardProps = {
+  // Set when editing an existing card; omitted on the create page
+  card?: CardData;
+  onSaved?: (card: CardData) => void;
+  onCancel?: () => void;
+};
+
+export default function Card({ card, onSaved, onCancel }: CardProps = {}) {
+  const isEdit = Boolean(card?._id);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    card ? new Date(card.submittedAt) : null
+  );
+  const [rating, setRating] = useState<number>(card?.rating ?? 0);
+  const [comment, setComment] = useState<string>(card?.comment ?? '');
   const [message, setMessage] = useState<string | null>(null);
-  const [productId, setProductId] = useState<string>('');
+  const [productId, setProductId] = useState<string>(card?.productId ?? '');
   const router = useRouter();
   const datePickerRef = useRef<any>(null);
 
@@ -39,14 +49,28 @@ export default function Card() {
       return;
     }
 
+    const fields = {
+      rating,
+      comment,
+      productId,
+      submittedAt: selectedDate?.toISOString() || new Date().toISOString()
+    };
+
+    if (isEdit && card?._id) {
+      try {
+        const res = await updateCard(card._id, fields);
+        onSaved?.(res.data);
+      } catch (error) {
+        console.error('Update error:', error);
+        const serverMessage = isAxiosError(error) ? error.response?.data?.message : null;
+        setMessage(serverMessage || 'Failed to save card.');
+      }
+      return;
+    }
+
     try {
       // Author is taken from the access token by the backend
-      const res = await submitCard({
-        rating,
-        comment,
-        productId,
-        submittedAt: selectedDate?.toISOString() || new Date().toISOString()
-      });
+      const res = await submitCard(fields);
 
       setMessage(res.data.message || 'Card submitted!');
       setRating(0);
@@ -68,7 +92,9 @@ export default function Card() {
   return (
     <form className={styles.formCreate} onSubmit={handleSubmit}>
       <header className={styles.header}>
-        <h2 className={styles.title}>Create card</h2>
+        <h2 className={styles.title} id="card-form-title">
+          {isEdit ? 'Edit card' : 'Create card'}
+        </h2>
         <p className={styles.hint}>
           Required fields are marked with an asterisk <span className={styles.required}>*</span>
         </p>
@@ -163,11 +189,11 @@ export default function Card() {
       </div>
 
       <footer className={styles.footer}>
-        <button type="button" className={styles.buttonCancel} onClick={() => router.back()}>
+        <button type="button" className={styles.buttonCancel} onClick={() => (onCancel ? onCancel() : router.back())}>
           Cancel
         </button>
         <button className={styles.buttonCreate} type="submit">
-          Create
+          {isEdit ? 'Save' : 'Create'}
         </button>
       </footer>
     </form>

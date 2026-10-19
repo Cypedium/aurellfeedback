@@ -22,6 +22,7 @@ describe("auth guard", () => {
   it.each([
     ["get", "/card"],
     ["post", "/card"],
+    ["put", `/card/${CARD_ID}`],
     ["delete", `/card/${CARD_ID}`]
   ])("%s %s returns 401 without a token", async (method, path) => {
     const res = await request(app)[method](path);
@@ -73,6 +74,58 @@ describe("POST /card", () => {
 
     expect(res.status).toBe(400);
     expect(Card).not.toHaveBeenCalled();
+  });
+});
+
+describe("PUT /card/:id", () => {
+  it("updates the user's own card and returns it", async () => {
+    const save = jest.fn().mockResolvedValue({});
+    Card.findById.mockResolvedValue({ _id: CARD_ID, username: "alice", ...validCard, save });
+
+    const res = await request(app)
+      .put(`/card/${CARD_ID}`)
+      .set("Authorization", authHeader("alice"))
+      .send({ ...validCard, comment: "Edited", rating: 2, username: "mallory" });
+
+    expect(res.status).toBe(200);
+    expect(save).toHaveBeenCalled();
+    expect(res.body).toMatchObject({ comment: "Edited", rating: 2, username: "alice" });
+  });
+
+  it("refuses to edit another user's card with 403", async () => {
+    const save = jest.fn();
+    Card.findById.mockResolvedValue({ _id: CARD_ID, username: "bob", save });
+
+    const res = await request(app).put(`/card/${CARD_ID}`).set("Authorization", authHeader("alice")).send(validCard);
+
+    expect(res.status).toBe(403);
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 for a missing card", async () => {
+    Card.findById.mockResolvedValue(null);
+
+    const res = await request(app).put(`/card/${CARD_ID}`).set("Authorization", authHeader()).send(validCard);
+
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 400 for a malformed id", async () => {
+    const res = await request(app).put("/card/not-an-id").set("Authorization", authHeader()).send(validCard);
+
+    expect(res.status).toBe(400);
+  });
+
+  it.each([
+    [{ ...validCard, rating: 6 }],
+    [{ ...validCard, comment: "   " }],
+    [{ ...validCard, productId: { $ne: null } }],
+    [{ ...validCard, submittedAt: "not-a-date" }]
+  ])("rejects invalid card %j with 400", async (body) => {
+    const res = await request(app).put(`/card/${CARD_ID}`).set("Authorization", authHeader()).send(body);
+
+    expect(res.status).toBe(400);
+    expect(Card.findById).not.toHaveBeenCalled();
   });
 });
 
