@@ -227,46 +227,48 @@ export default function Home() {
                   key={fb._id || fb.username + fb.submittedAt}
                   className="group relative flex cursor-grab flex-col gap-2 overflow-hidden rounded-md bg-white p-3 font-jira text-sm text-jira-text shadow-[0_1px_1px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] hover:bg-jira-hover"
                 >
-                  <div className="absolute top-2 right-2 flex items-center gap-1">
+                  <div className="absolute top-2 right-2 flex flex-col items-end gap-0.5">
+                    <div className="flex items-center gap-1">
+                      {userName === fb.username && fb._id && (
+                        <button
+                          className={CARD_ACTION_CLASS}
+                          aria-label="Edit card"
+                          title="Edit"
+                          onClick={() => setEditingCard(fb)}
+                        >
+                          <PencilIcon className="size-4" aria-hidden />
+                        </button>
+                      )}
+
+                      <button
+                        className={CARD_ACTION_CLASS}
+                        aria-label="Delete card"
+                        title="Delete"
+                        onClick={() => {
+                          if (userName === fb.username) {
+                            if (
+                              confirm("Are you sure you want to delete this card?")
+                            ) {
+                              if (fb._id) {
+                                deleteCardCard(fb._id);
+                              } else {
+                                alert("Card ID is missing. Cannot delete.");
+                              }
+                            }
+                          } else {
+                            alert("You can only delete your own card.");
+                          }
+                        }}
+                      >
+                        <TrashIcon className="size-4" aria-hidden />
+                      </button>
+                    </div>
+
                     <span
-                      className={`rounded-[3px] border border-jira-neutral bg-jira-hover px-1.5 text-xs/5 text-jira-secondary ${CARD_HOVER_CLASS}`}
+                      className={`rounded-[3px] bg-jira-hover px-1.5 text-xs/5 font-bold text-jira-secondary ${CARD_HOVER_CLASS}`}
                     >
                       {fb.submittedAt.substring(0, 10)}
                     </span>
-
-                    {userName === fb.username && fb._id && (
-                      <button
-                        className={CARD_ACTION_CLASS}
-                        aria-label="Edit card"
-                        title="Edit"
-                        onClick={() => setEditingCard(fb)}
-                      >
-                        <PencilIcon className="size-4" aria-hidden />
-                      </button>
-                    )}
-
-                    <button
-                      className={CARD_ACTION_CLASS}
-                      aria-label="Delete card"
-                      title="Delete"
-                      onClick={() => {
-                        if (userName === fb.username) {
-                          if (
-                            confirm("Are you sure you want to delete this card?")
-                          ) {
-                            if (fb._id) {
-                              deleteCardCard(fb._id);
-                            } else {
-                              alert("Card ID is missing. Cannot delete.");
-                            }
-                          }
-                        } else {
-                          alert("You can only delete your own card.");
-                        }
-                      }}
-                    >
-                      <TrashIcon className="size-4" aria-hidden />
-                    </button>
                   </div>
 
                   <p
