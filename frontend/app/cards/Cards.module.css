@@ -15,20 +15,125 @@
     font-family: Arial, sans-serif;
 }
 
+/* Jira-liknande kort */
 .card {
-  background: #f9f9f9;
-  border: 1px solid #ddd;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  overflow: hidden;
+  background: #fff;
+  color: #172b4d;
+  border-radius: 6px;
+  box-shadow: 0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  cursor: grab;
+  transition: background-color 0.15s;
 }
 
-.starRating {
-  color: gold;
+.card:hover {
+  background: #f7f8f9;
 }
 
-.starRating .empty {
-  color: #ccc;
+.summary {
+  margin: 0;
+  padding-right: 20px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dateChip {
+  align-self: flex-start;
+  padding: 0 6px;
+  border: 1px solid #dcdfe4;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 20px;
+  color: #44546f;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.issueType {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background: #4bade8;
+  color: #fff;
+}
+
+.issueKey {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #44546f;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.estimate {
+  flex-shrink: 0;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 2em;
+  background: #dcdfe4;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.deleteButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: #44546f;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.card:hover .deleteButton,
+.deleteButton:focus-visible {
+  opacity: 1;
+}
+
+.deleteButton:hover {
+  background: #dcdfe4;
 }
 
 .trashCan {
@@ -40,14 +145,6 @@
   padding: 5px;
 }
 
-.deletebutton {
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  float: right;
-}
 
 .cardList {
   display: grid;
