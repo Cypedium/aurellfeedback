@@ -304,7 +304,7 @@ export default function Home() {
         </div>
       </div>
 
-      {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
+      {error && <div className="mt-3 text-[red]">{error}</div>}
 
       {editingCard && (
         <div

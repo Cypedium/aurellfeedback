@@ -5,6 +5,11 @@
 
 /* Jira-färger och typsnitt för board och formulär, t.ex. text-jira-text, bg-jira-lane */
 @theme {
+  /* Navbar och footer */
+  --font-brand: Arial, Helvetica, sans-serif;
+  --color-brand: #007bff;
+  --color-brand-border: #aaa;
+
   --font-jira: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --color-jira-text: #172b4d;
   --color-jira-secondary: #44546f;

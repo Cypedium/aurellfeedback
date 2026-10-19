@@ -4,7 +4,6 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { handleLogout } from '../utils/logout';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import styles from './Navbar.module.css';
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -19,9 +18,9 @@ const Navbar = () => {
   }, [pathname]);
 
   return (
-    <nav className={styles.nav}>
+    <nav className="fixed z-[1000] flex w-full items-center justify-between border border-brand-border bg-brand py-[0.5%] pr-[2%] pl-[3%] font-brand">
       <button
-        className={styles.menuToggle}
+        className="block text-white md:hidden"
         onClick={() => setMenuOpen(!menuOpen)}
         aria-label={menuOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={menuOpen}
@@ -29,7 +28,10 @@ const Navbar = () => {
         {menuOpen ? <XMarkIcon className="size-8" aria-hidden /> : <Bars3Icon className="size-8" aria-hidden />}
       </button>
 
-      <ul className={`${styles.navLinks} ${menuOpen ? styles.open : styles.closed}`}>
+      {/* Mobil: dold tills menyn öppnas. Desktop: alltid synlig på en rad */}
+      <ul
+        className={`${menuOpen ? 'flex' : 'hidden'} absolute top-[50px] w-full flex-col gap-4 rounded-lg bg-brand p-8 text-2xl text-white md:static md:flex md:flex-row md:gap-10 md:bg-transparent md:p-0`}
+      >
         {isLoggedIn && (
           <>
             <li onClick={() => setMenuOpen(false)}>
@@ -47,10 +49,8 @@ const Navbar = () => {
               <button onClick={handleLogout}>Logout</button>
             </li>
             {userName && (
-              <li className="profile-link" key="profile">
-                <div className="profile-container">
-                  <span className="profile-name">{userName}</span>
-                </div>
+              <li key="profile">
+                <span>{userName}</span>
               </li>
             )}
           </>
