@@ -1,9 +1,8 @@
 import React from "react";
-import styles from "./Footer.module.css";
 
 export default function Footer() {
   return (
-    <footer className={styles.footer}>
+    <footer className="flex h-[60px] w-full justify-center border border-brand-border bg-brand py-[1%] font-brand shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
       <div>&copy; Mikael Aurell 2026</div>
     </footer>
   );
