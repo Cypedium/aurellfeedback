@@ -225,83 +225,88 @@ export default function Home() {
               {cards.map((fb) => (
                 <div
                   key={fb._id || fb.username + fb.submittedAt}
-                  className="group relative flex cursor-grab flex-col gap-2 overflow-hidden rounded-md bg-white p-3 font-jira text-sm text-jira-text shadow-[0_1px_1px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] hover:bg-jira-hover"
+                  // Luft mellan kortet och kolumnens kanter
+                  className="px-2"
                 >
-                  <div className="absolute top-2 right-2 flex flex-col items-end gap-0.5">
-                    <div className="flex items-center gap-1">
-                      {userName === fb.username && fb._id && (
+                  <div
+                    className="group relative flex h-full cursor-grab flex-col gap-2 overflow-hidden rounded-md bg-white p-3 font-jira text-sm text-jira-text shadow-[0_1px_1px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] hover:bg-jira-hover"
+                  >
+                    <div className="absolute top-2 right-2 flex flex-col items-end gap-0.5">
+                      <div className="flex items-center gap-1">
+                        {userName === fb.username && fb._id && (
+                          <button
+                            className={CARD_ACTION_CLASS}
+                            aria-label="Edit card"
+                            title="Edit"
+                            onClick={() => setEditingCard(fb)}
+                          >
+                            <PencilIcon className="size-4" aria-hidden />
+                          </button>
+                        )}
+
                         <button
                           className={CARD_ACTION_CLASS}
-                          aria-label="Edit card"
-                          title="Edit"
-                          onClick={() => setEditingCard(fb)}
-                        >
-                          <PencilIcon className="size-4" aria-hidden />
-                        </button>
-                      )}
-
-                      <button
-                        className={CARD_ACTION_CLASS}
-                        aria-label="Delete card"
-                        title="Delete"
-                        onClick={() => {
-                          if (userName === fb.username) {
-                            if (
-                              confirm("Are you sure you want to delete this card?")
-                            ) {
-                              if (fb._id) {
-                                deleteCardCard(fb._id);
-                              } else {
-                                alert("Card ID is missing. Cannot delete.");
+                          aria-label="Delete card"
+                          title="Delete"
+                          onClick={() => {
+                            if (userName === fb.username) {
+                              if (
+                                confirm("Are you sure you want to delete this card?")
+                              ) {
+                                if (fb._id) {
+                                  deleteCardCard(fb._id);
+                                } else {
+                                  alert("Card ID is missing. Cannot delete.");
+                                }
                               }
+                            } else {
+                              alert("You can only delete your own card.");
                             }
-                          } else {
-                            alert("You can only delete your own card.");
-                          }
-                        }}
+                          }}
+                        >
+                          <TrashIcon className="size-4" aria-hidden />
+                        </button>
+                      </div>
+
+                      <span
+                        className={`rounded-[3px] bg-jira-hover px-1.5 text-xs/5 font-bold text-jira-secondary ${CARD_HOVER_CLASS}`}
                       >
-                        <TrashIcon className="size-4" aria-hidden />
-                      </button>
+                        {/* yy-mm-dd, t.ex. 26-10-19 */}
+                        {fb.submittedAt.substring(2, 10)}
+                      </span>
                     </div>
 
-                    <span
-                      className={`rounded-[3px] bg-jira-hover px-1.5 text-xs/5 font-bold text-jira-secondary ${CARD_HOVER_CLASS}`}
+                    <p
+                      className="line-clamp-3 pr-12 leading-5 wrap-anywhere"
+                      title={fb.comment}
                     >
-                      {/* yy-mm-dd, t.ex. 26-10-19 */}
-                      {fb.submittedAt.substring(2, 10)}
-                    </span>
-                  </div>
+                      {fb.comment}
+                    </p>
 
-                  <p
-                    className="line-clamp-3 pr-12 leading-5 wrap-anywhere"
-                    title={fb.comment}
-                  >
-                    {fb.comment}
-                  </p>
-
-                  <div className="mt-auto flex items-center gap-1.5">
-                    <span
-                      className="inline-flex size-4 shrink-0 items-center justify-center rounded-[3px] bg-jira-task text-white"
-                      title="Task"
-                    >
-                      <CheckIcon className="size-3" aria-hidden />
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase text-jira-secondary">
-                      {fb.productId}
-                    </span>
-                    <span
-                      className="min-w-5 shrink-0 rounded-full bg-jira-neutral px-1.5 text-center text-xs/4"
-                      title={`Time tracking: ${fb.rating}/5`}
-                    >
-                      {fb.rating}
-                    </span>
-                    <span
-                      className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
-                      style={{ background: avatarColor(fb.username) }}
-                      title={fb.username}
-                    >
-                      {fb.username.slice(0, 2).toUpperCase()}
-                    </span>
+                    <div className="mt-auto flex items-center gap-1.5">
+                      <span
+                        className="inline-flex size-4 shrink-0 items-center justify-center rounded-[3px] bg-jira-task text-white"
+                        title="Task"
+                      >
+                        <CheckIcon className="size-3" aria-hidden />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase text-jira-secondary">
+                        {fb.productId}
+                      </span>
+                      <span
+                        className="min-w-5 shrink-0 rounded-full bg-jira-neutral px-1.5 text-center text-xs/4"
+                        title={`Time tracking: ${fb.rating}/5`}
+                      >
+                        {fb.rating}
+                      </span>
+                      <span
+                        className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
+                        style={{ background: avatarColor(fb.username) }}
+                        title={fb.username}
+                      >
+                        {fb.username.slice(0, 2).toUpperCase()}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
