@@ -168,7 +168,7 @@ export default function Home() {
   return (
     <div id="cards-container">
       <br />
-      <h1 className="mb-5 text-center text-[40px] font-bold">Aurell Gira Board</h1>
+      <h1 className="mb-5 text-center text-[40px] font-bold">Jira Board</h1>
       <div className="overflow-x-auto">
         <div
           ref={containerRef}
