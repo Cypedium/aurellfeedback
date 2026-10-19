@@ -1,6 +1,6 @@
 # Aurell Gira Board
 
-A small issue/feedback board. Logged-in users create cards (issue key, summary, priority 1–5, date), see everyone's cards on a drag-and-drop grid, and delete their own. Each user's grid layout is saved server-side.
+A small issue/feedback board. Logged-in users create cards (issue key, summary, priority 1–5, date), see everyone's cards on a drag-and-drop grid, and edit or delete their own. Each user's grid layout is saved server-side.
 
 | Part | Stack | Folder | Fly app |
 |---|---|---|---|
@@ -68,6 +68,7 @@ All routes except `/auth/*` and `/health` require `Authorization: Bearer <access
 | `POST` | `/auth/logout` | `{ refreshToken }` → revokes all of the user's refresh tokens |
 | `GET` | `/card` | All cards, newest first |
 | `POST` | `/card` | `{ rating (1–5), comment, productId, submittedAt? }` → `201`. Author is taken from the token |
+| `PUT` | `/card/:id` | Edit a card, same body as `POST` → updated card; `403` unless it is your own |
 | `DELETE` | `/card/:id` | Delete a card; `403` unless it is your own |
 | `GET` | `/user` | Users (`username`, `pictureUrl`) |
 | `GET` | `/user/usernames` | Usernames only |
