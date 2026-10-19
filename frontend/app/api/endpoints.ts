@@ -1,6 +1,7 @@
 // app/api/endpoints.ts
 // Paths must match the backend mounts in server/app.js: /auth, /card, /user
 import api from "./api";
+import type { CardStatus } from "../utils/boardLayout";
 
 export type Card = {
   _id?: string;
@@ -9,10 +10,12 @@ export type Card = {
   productId: string;
   username: string;
   submittedAt: string;
+  // Missing on cards created before statuses existed → treated as "todo"
+  status?: CardStatus;
 };
 
-// The backend sets the author from the access token
-export type NewCard = Omit<Card, "_id" | "username">;
+// The backend sets the author from the access token; new cards start in "todo"
+export type NewCard = Omit<Card, "_id" | "username" | "status">;
 
 export type User = {
   username: string;
@@ -44,6 +47,10 @@ export const getCards = () => api.get<Card[]>("/card");
 export const updateCard = (id: string, card: NewCard) =>
   api.put<Card>(`/card/${id}`, card);
 
+// Any logged-in user may move a card to another column
+export const updateCardStatus = (id: string, status: CardStatus) =>
+  api.patch<Card>(`/card/${id}/status`, { status });
+
 export const deleteCard = (id: string) =>
   api.delete(`/card/${id}`);
 
@@ -57,6 +64,7 @@ export default {
   submitCard,
   getCards,
   updateCard,
+  updateCardStatus,
   getUsers,
   deleteCard,
 };

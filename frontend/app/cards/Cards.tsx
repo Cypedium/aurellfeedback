@@ -1,31 +1,24 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
-  LayoutItem,
+  Layout,
   ResponsiveGridLayout,
   useContainerWidth,
 } from "react-grid-layout";
 import { CheckIcon, PencilIcon, TrashIcon } from "@heroicons/react/16/solid";
 import debounce from "lodash.debounce";
 import api from "../api/api"; // ⭐ axios-instansen
-import { deleteCard } from "../api/endpoints";
+import { deleteCard, updateCardStatus, type Card } from "../api/endpoints";
 import CardForm from "./card/Card";
 import {
   BoardHeader,
+  CardStatus,
   SavedCardPosition,
   BOARD_COLS,
   DEFAULT_HEADERS,
   buildCardLayout,
+  statusForColumn,
 } from "../utils/boardLayout";
-
-type Card = {
-  _id?: string;
-  rating: number;
-  comment: string;
-  productId: string;
-  username: string;
-  submittedAt: string;
-};
 
 type UserLayout = {
   cols: number;
@@ -51,6 +44,11 @@ const CARD_HOVER_CLASS =
   "opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100";
 const CARD_ACTION_CLASS = `no-drag rounded-[3px] px-1.5 py-1 text-jira-secondary hover:bg-jira-neutral ${CARD_HOVER_CLASS}`;
 
+const cardKey = (fb: Card, i: number) => fb._id || String(i);
+
+const toSavedPositions = (layout: Layout): SavedCardPosition[] =>
+  layout.map((l) => ({ id: l.i, x: l.x, y: l.y, w: l.w, h: l.h }));
+
 const avatarColor = (name: string) => {
   let hash = 0;
   for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) | 0;
@@ -62,7 +60,6 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [userLayout, setUserLayout] = useState<UserLayout>(DEFAULT_LAYOUT);
   const [layoutLoaded, setLayoutLoaded] = useState(false);
-  const [gridLayout, setGridLayout] = useState<LayoutItem[]>([]);
   const [userName, setUserName] = useState("");
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   // Gridden följer boardens bredd så att den fyller skärmen
@@ -116,12 +113,18 @@ export default function Home() {
     loadLayout().finally(() => setLayoutLoaded(true));
   }, []);
 
-  // Bygg gridden när både kort och layout finns
-  useEffect(() => {
-    if (!layoutLoaded) return;
-    const ids = cards.map((fb, i) => fb._id || String(i));
-    setGridLayout(buildCardLayout(ids, userLayout.cards, BOARD_COLS));
-  }, [cards, layoutLoaded]);
+  // Räknas fram vid varje render, så gridden får aldrig en tom layout som
+  // sedan sparas över den riktiga
+  const gridLayout = useMemo(
+    () =>
+      layoutLoaded
+        ? buildCardLayout(
+            cards.map((fb, i) => ({ id: cardKey(fb, i), status: fb.status })),
+            userLayout.cards,
+          )
+        : [],
+    [cards, userLayout.cards, layoutLoaded],
+  );
 
   // 🔥 Spara layout till server via api.ts
   const saveLayoutToServer = useCallback(
@@ -139,6 +142,22 @@ export default function Home() {
     setUserLayout(next);
     localStorage.setItem("user_layout", JSON.stringify(next));
     saveLayoutToServer(next);
+  };
+
+  // Flytta kortet direkt och spara statusen; vid fel flyttas det tillbaka
+  const moveCard = async (id: string, status: CardStatus) => {
+    const previous = cards.find((fb) => fb._id === id)?.status;
+    const setStatus = (s?: CardStatus) =>
+      setCards((prev) => prev.map((fb) => (fb._id === id ? { ...fb, status: s } : fb)));
+
+    setStatus(status);
+    try {
+      await updateCardStatus(id, status);
+    } catch (err: any) {
+      console.error("Error moving card:", err.message);
+      setStatus(previous);
+      setError(err.response?.data?.message || "Could not move card");
+    }
   };
 
   // Stäng redigeringsdialogen med Escape
@@ -210,16 +229,14 @@ export default function Home() {
               containerPadding={[GRID_MARGIN, HEADER_HEIGHT]}
               dragConfig={{ cancel: ".no-drag" }}
               onLayoutChange={(currentLayout) => {
-                setGridLayout([...currentLayout]);
-                const cards = currentLayout.map((l) => ({
-                  id: l.i,
-                  x: l.x,
-                  y: l.y,
-                  w: l.w,
-                  h: l.h,
-                }));
-
-                persistLayout({ ...userLayout, cards });
+                persistLayout({ ...userLayout, cards: toSavedPositions(currentLayout) });
+              }}
+              onDragStop={(currentLayout, oldItem, newItem) => {
+                if (!oldItem || !newItem || oldItem.x === newItem.x) return;
+                // Spara radordningen direkt så att kortet inte hoppar när statusen ändras
+                persistLayout({ ...userLayout, cards: toSavedPositions(currentLayout) });
+                const card = cards.find((fb, i) => cardKey(fb, i) === newItem.i);
+                if (card?._id) moveCard(card._id, statusForColumn(newItem.x));
               }}
             >
               {cards.map((fb) => (

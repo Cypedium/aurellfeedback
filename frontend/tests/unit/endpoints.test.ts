@@ -7,6 +7,7 @@ const spies = {
   get: jest.spyOn(api, "get"),
   post: jest.spyOn(api, "post"),
   put: jest.spyOn(api, "put"),
+  patch: jest.spyOn(api, "patch"),
   delete: jest.spyOn(api, "delete"),
 };
 
@@ -23,6 +24,7 @@ describe("API endpoints", () => {
     ["getCards", () => endpoints.getCards(), "get", "/card"],
     ["submitCard", () => endpoints.submitCard({ rating: 3, comment: "c", productId: "p", submittedAt: "2026-01-01" }), "post", "/card"],
     ["updateCard", () => endpoints.updateCard("abc", { rating: 3, comment: "c", productId: "p", submittedAt: "2026-01-01" }), "put", "/card/abc"],
+    ["updateCardStatus", () => endpoints.updateCardStatus("abc", "done"), "patch", "/card/abc/status"],
     ["deleteCard", () => endpoints.deleteCard("abc"), "delete", "/card/abc"],
     ["getUsers", () => endpoints.getUsers(), "get", "/user"],
   ] as const)("%s calls %s %s", async (_name, call, method, path) => {

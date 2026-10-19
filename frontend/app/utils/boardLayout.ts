@@ -1,6 +1,9 @@
-export type BoardHeader = { key: string; title: string };
+// Statusarna måste matcha CARD_STATUSES i server/utils/cardStatus.js
+export type CardStatus = "todo" | "in-progress" | "test" | "done";
+export type BoardHeader = { key: CardStatus; title: string };
 export type SavedCardPosition = { id: string; x: number; y: number; w: number; h: number };
 export type CardPosition = { i: string; x: number; y: number; w: number; h: number };
+export type BoardCard = { id: string; status?: string };
 
 export const DEFAULT_HEADERS: BoardHeader[] = [
   { key: "todo", title: "To Do" },
@@ -11,22 +14,30 @@ export const DEFAULT_HEADERS: BoardHeader[] = [
 
 export const BOARD_COLS = DEFAULT_HEADERS.length;
 
-// Varje kort är en kolumn brett och en rad högt. Sparade positioner behålls,
-// nya kort hamnar sist i första kolumnen (To Do).
+// Okänd eller saknad status (äldre kort) hamnar i To Do
+export const columnForStatus = (status?: string): number =>
+  Math.max(0, DEFAULT_HEADERS.findIndex((h) => h.key === status));
+
+export const statusForColumn = (x: number): CardStatus =>
+  DEFAULT_HEADERS[Math.min(Math.max(0, x), BOARD_COLS - 1)].key;
+
+// Varje kort är en kolumn brett och en rad högt. Kolumnen kommer från kortets
+// status (delad av alla). Ordningen inom kolumnen kommer från användarens
+// sparade positioner; kort utan sparad position i sin kolumn hamnar sist.
 export const buildCardLayout = (
-  cardIds: string[],
+  cards: BoardCard[],
   saved: SavedCardPosition[] = [],
-  cols: number,
 ): CardPosition[] => {
   const byId = new Map(saved.map((s) => [s.id, s]));
-  let nextTodoRow =
-    saved.filter((s) => s.x === 0).reduce((max, s) => Math.max(max, s.y + 1), 0);
+  const nextRow = new Array<number>(BOARD_COLS).fill(0);
 
-  return cardIds.map((id) => {
+  const placed = cards.map(({ id, status }) => {
+    const x = columnForStatus(status);
     const pos = byId.get(id);
-    if (pos) {
-      return { i: id, x: Math.min(Math.max(0, pos.x), cols - 1), y: pos.y, w: 1, h: 1 };
-    }
-    return { i: id, x: 0, y: nextTodoRow++, w: 1, h: 1 };
+    const y = pos && pos.x === x ? pos.y : null;
+    if (y !== null) nextRow[x] = Math.max(nextRow[x], y + 1);
+    return { id, x, y };
   });
+
+  return placed.map(({ id, x, y }) => ({ i: id, x, y: y ?? nextRow[x]++, w: 1, h: 1 }));
 };
