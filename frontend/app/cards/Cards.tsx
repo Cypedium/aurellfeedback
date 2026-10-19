@@ -267,7 +267,8 @@ export default function Home() {
                     <span
                       className={`rounded-[3px] bg-jira-hover px-1.5 text-xs/5 font-bold text-jira-secondary ${CARD_HOVER_CLASS}`}
                     >
-                      {fb.submittedAt.substring(0, 10)}
+                      {/* yy-mm-dd, t.ex. 26-10-19 */}
+                      {fb.submittedAt.substring(2, 10)}
                     </span>
                   </div>
 
