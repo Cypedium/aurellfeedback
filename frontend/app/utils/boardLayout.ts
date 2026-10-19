@@ -9,17 +9,7 @@ export const DEFAULT_HEADERS: BoardHeader[] = [
   { key: "done", title: "Done" },
 ];
 
-export const MIN_COLS = 2;
-export const MAX_COLS = 10;
-
-export const clampCols = (n: unknown) => {
-  const num = Number(n) || DEFAULT_HEADERS.length;
-  return Math.min(MAX_COLS, Math.max(MIN_COLS, Math.floor(num)));
-};
-
-// Använder standardrubrikerna om användaren inte har några egna
-export const withDefaultHeaders = (headers?: BoardHeader[]) =>
-  headers && headers.length > 0 ? headers : DEFAULT_HEADERS;
+export const BOARD_COLS = DEFAULT_HEADERS.length;
 
 // Varje kort är en kolumn brett och en rad högt. Sparade positioner behålls,
 // nya kort hamnar sist i första kolumnen (To Do).

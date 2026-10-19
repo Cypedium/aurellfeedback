@@ -10,12 +10,9 @@ import { deleteCard } from "../api/endpoints";
 import {
   BoardHeader,
   SavedCardPosition,
+  BOARD_COLS,
   DEFAULT_HEADERS,
-  MIN_COLS,
-  MAX_COLS,
   buildCardLayout,
-  clampCols,
-  withDefaultHeaders,
 } from "../utils/boardLayout";
 
 type Card = {
@@ -34,7 +31,7 @@ type UserLayout = {
 };
 
 const DEFAULT_LAYOUT: UserLayout = {
-  cols: DEFAULT_HEADERS.length,
+  cols: BOARD_COLS,
   headers: DEFAULT_HEADERS,
 };
 
@@ -79,11 +76,10 @@ export default function Home() {
 
   // 🔥 Hämta layout från server eller localStorage
   useEffect(() => {
+    // Boarden har alltid de fyra fasta kolumnerna, bara kortpositioner sparas
     const normalize = (raw: Partial<UserLayout>): UserLayout => ({
       ...DEFAULT_LAYOUT,
-      ...raw,
-      cols: clampCols(raw.cols),
-      headers: withDefaultHeaders(raw.headers),
+      cards: raw.cards,
     });
 
     const loadLayout = async () => {
@@ -110,12 +106,12 @@ export default function Home() {
     loadLayout().finally(() => setLayoutLoaded(true));
   }, []);
 
-  // Bygg gridden när både kort och layout finns (och när antal kolumner ändras)
+  // Bygg gridden när både kort och layout finns
   useEffect(() => {
     if (!layoutLoaded) return;
     const ids = cards.map((fb, i) => fb._id || String(i));
-    setGridLayout(buildCardLayout(ids, userLayout.cards, userLayout.cols));
-  }, [cards, layoutLoaded, userLayout.cols]);
+    setGridLayout(buildCardLayout(ids, userLayout.cards, BOARD_COLS));
+  }, [cards, layoutLoaded]);
 
   // 🔥 Spara layout till server via api.ts
   const saveLayoutToServer = useCallback(
@@ -130,14 +126,9 @@ export default function Home() {
   );
 
   const persistLayout = (next: UserLayout) => {
-    next.cols = clampCols(next.cols);
     setUserLayout(next);
     localStorage.setItem("user_layout", JSON.stringify(next));
     saveLayoutToServer(next);
-  };
-
-  const updateCols = (cols: number) => {
-    persistLayout({ ...userLayout, cols: clampCols(cols) });
   };
 
   const deleteCardCard = async (id: string) => {
@@ -150,75 +141,22 @@ export default function Home() {
     }
   };
 
-  const cols = clampCols(userLayout.cols);
-  const lanes = Array.from({ length: cols }, (_, i) => userLayout.headers[i]);
-
   return (
     <div id="cards-container">
       <br />
       <h1 className={styles.title}>Aurell Gira Board</h1>
-      <div>
-        <label>
-          <strong>Kolumner</strong>
-          <select
-            value={userLayout.cols}
-            onChange={(e) => updateCols(Number(e.target.value))}
-            style={{ marginLeft: 8 }}
-          >
-            {Array.from(
-              { length: MAX_COLS - MIN_COLS + 1 },
-              (_, i) => i + MIN_COLS,
-            ).map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div>
-          <strong>Rubriker</strong>
-          <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-            {(userLayout.headers || []).map((h, i) => (
-              <input
-                key={h.key}
-                value={h.title}
-                onChange={(e) => {
-                  const newHeaders = [...(userLayout.headers || [])];
-                  newHeaders[i] = { ...newHeaders[i], title: e.target.value };
-                  persistLayout({ ...userLayout, headers: newHeaders });
-                }}
-                placeholder={`Header ${i + 1}`}
-                style={{ padding: 10 }}
-              />
-            ))}
-            <button
-              onClick={() => {
-                const newHeaders = [
-                  ...(userLayout.headers || []),
-                  { key: `col${Date.now()}`, title: "Ny kolumn" },
-                ];
-                persistLayout({ ...userLayout, headers: newHeaders });
-              }}
-            >
-              Lägg till
-            </button>
-          </div>
-        </div>
-      </div>
-
       <div className={styles.board} style={{ width: BOARD_WIDTH }}>
         <div
           className={styles.lanes}
           style={{
             padding: `0 ${GRID_MARGIN}px`,
             gap: GRID_MARGIN,
-            gridTemplateColumns: `repeat(${cols}, 1fr)`,
+            gridTemplateColumns: `repeat(${BOARD_COLS}, 1fr)`,
           }}
         >
-          {lanes.map((h, i) => (
-            <div key={h?.key || `lane-${i}`} className={styles.lane}>
-              <span className={styles.laneTitle}>{h?.title || ""}</span>
+          {DEFAULT_HEADERS.map((h, i) => (
+            <div key={h.key} className={styles.lane}>
+              <span className={styles.laneTitle}>{h.title}</span>
               <span className={styles.laneCount}>
                 {gridLayout.filter((l) => l.x === i).length}
               </span>
@@ -231,7 +169,7 @@ export default function Home() {
             className="gridLayout"
             layouts={{ lg: gridLayout }}
             breakpoints={{ lg: 0 }}
-            cols={{ lg: cols }}
+            cols={{ lg: BOARD_COLS }}
             rowHeight={ROW_HEIGHT}
             width={BOARD_WIDTH}
             margin={[GRID_MARGIN, GRID_MARGIN]}

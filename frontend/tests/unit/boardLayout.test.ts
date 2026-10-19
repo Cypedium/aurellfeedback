@@ -1,36 +1,19 @@
 import { describe, expect, it } from "@jest/globals";
 import {
+  BOARD_COLS,
   DEFAULT_HEADERS,
   buildCardLayout,
-  clampCols,
-  withDefaultHeaders,
 } from "../../app/utils/boardLayout";
 
-describe("withDefaultHeaders", () => {
-  it("returns To Do, In Progress, Test, Done when no headers are saved", () => {
-    expect(withDefaultHeaders([]).map((h) => h.title)).toEqual([
+describe("DEFAULT_HEADERS", () => {
+  it("is To Do, In Progress, Test, Done", () => {
+    expect(DEFAULT_HEADERS.map((h) => h.title)).toEqual([
       "To Do",
       "In Progress",
       "Test",
       "Done",
     ]);
-    expect(withDefaultHeaders(undefined)).toBe(DEFAULT_HEADERS);
-  });
-
-  it("keeps the user's own headers", () => {
-    const own = [{ key: "a", title: "Backlog" }];
-    expect(withDefaultHeaders(own)).toBe(own);
-  });
-});
-
-describe("clampCols", () => {
-  it.each([
-    [undefined, 4],
-    [1, 2],
-    [11, 10],
-    [5.7, 5],
-  ])("clamps %s to %s", (input, expected) => {
-    expect(clampCols(input)).toBe(expected);
+    expect(BOARD_COLS).toBe(4);
   });
 });
 
