@@ -7,8 +7,7 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import { sv } from 'date-fns/locale/sv';
 import leoProfanity from "leo-profanity";
 import { isAxiosError } from 'axios';
-import { faCalendar } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { CalendarIcon, CheckIcon } from '@heroicons/react/16/solid';
 
 
 registerLocale('sv', sv);
@@ -117,16 +116,7 @@ export default function Card({ card, onSaved, onCancel }: CardProps = {}) {
             className="inline-flex size-4 items-center justify-center rounded-[3px] bg-jira-task text-white"
             aria-hidden
           >
-            <svg viewBox="0 0 16 16" width="10" height="10">
-              <path
-                d="M3 8.5l3 3 7-7"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <CheckIcon className="size-3" />
           </span>
           Task
         </span>
@@ -201,7 +191,7 @@ export default function Card({ card, onSaved, onCancel }: CardProps = {}) {
             aria-label="Open calendar"
             onClick={() => datePickerRef.current?.setOpen(true)}
           >
-            <FontAwesomeIcon icon={faCalendar} />
+            <CalendarIcon className="size-4" aria-hidden />
           </button>
         </div>
 

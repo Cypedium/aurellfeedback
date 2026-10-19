@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { handleLogout } from '../utils/logout';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import styles from './Navbar.module.css';
 
 const Navbar = () => {
@@ -19,8 +20,13 @@ const Navbar = () => {
 
   return (
     <nav className={styles.nav}>
-      <button className={styles.menuToggle} onClick={() => setMenuOpen(!menuOpen)}>
-        {menuOpen ? "✖" : "☰"}
+      <button
+        className={styles.menuToggle}
+        onClick={() => setMenuOpen(!menuOpen)}
+        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+        aria-expanded={menuOpen}
+      >
+        {menuOpen ? <XMarkIcon className="size-8" aria-hidden /> : <Bars3Icon className="size-8" aria-hidden />}
       </button>
 
       <ul className={`${styles.navLinks} ${menuOpen ? styles.open : styles.closed}`}>
