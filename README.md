@@ -69,6 +69,7 @@ All routes except `/auth/*` and `/health` require `Authorization: Bearer <access
 | `GET` | `/card` | All cards, newest first |
 | `POST` | `/card` | `{ rating (1–5), comment, productId, submittedAt? }` → `201`. Author is taken from the token |
 | `PUT` | `/card/:id` | Edit a card, same body as `POST` → updated card; `403` unless it is your own |
+| `PATCH` | `/card/:id/status` | `{ status }` (`todo`, `in-progress`, `test`, `done`) → updated card. Any logged-in user can move any card |
 | `DELETE` | `/card/:id` | Delete a card; `403` unless it is your own |
 | `GET` | `/user` | Users (`username`, `pictureUrl`) |
 | `GET` | `/user/usernames` | Usernames only |
