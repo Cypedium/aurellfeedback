@@ -46,9 +46,10 @@ const ROW_HEIGHT = 150;
 // Jira-liknande avatarfärger, väljs stabilt per användarnamn
 const AVATAR_COLORS = ["#0052cc", "#00875a", "#ff5630", "#6554c0", "#ff991f", "#00a3bf"];
 
-// Edit- och delete-knapparna syns när man hovrar över kortet
-const CARD_ACTION_CLASS =
-  "no-drag absolute top-2 rounded-[3px] px-1.5 py-1 text-jira-secondary opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-jira-neutral";
+// Datum, edit- och delete-knappen syns bara när man hovrar över kortet
+const CARD_HOVER_CLASS =
+  "opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100";
+const CARD_ACTION_CLASS = `no-drag rounded-[3px] px-1.5 py-1 text-jira-secondary hover:bg-jira-neutral ${CARD_HOVER_CLASS}`;
 
 const avatarColor = (name: string) => {
   let hash = 0;
@@ -226,39 +227,50 @@ export default function Home() {
                   key={fb._id || fb.username + fb.submittedAt}
                   className="group relative flex cursor-grab flex-col gap-2 overflow-hidden rounded-md bg-white p-3 font-jira text-sm text-jira-text shadow-[0_1px_1px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] hover:bg-jira-hover"
                 >
-                  {userName === fb.username && fb._id && (
-                    <button
-                      className={`${CARD_ACTION_CLASS} right-9`}
-                      aria-label="Edit card"
-                      title="Edit"
-                      onClick={() => setEditingCard(fb)}
-                    >
-                      <PencilIcon className="size-4" aria-hidden />
-                    </button>
-                  )}
+                  <div className="absolute top-2 right-2 flex flex-col items-end gap-0.5">
+                    <div className="flex items-center gap-1">
+                      {userName === fb.username && fb._id && (
+                        <button
+                          className={CARD_ACTION_CLASS}
+                          aria-label="Edit card"
+                          title="Edit"
+                          onClick={() => setEditingCard(fb)}
+                        >
+                          <PencilIcon className="size-4" aria-hidden />
+                        </button>
+                      )}
 
-                  <button
-                    className={`${CARD_ACTION_CLASS} right-2`}
-                    aria-label="Delete card"
-                    title="Delete"
-                    onClick={() => {
-                      if (userName === fb.username) {
-                        if (
-                          confirm("Are you sure you want to delete this card?")
-                        ) {
-                          if (fb._id) {
-                            deleteCardCard(fb._id);
+                      <button
+                        className={CARD_ACTION_CLASS}
+                        aria-label="Delete card"
+                        title="Delete"
+                        onClick={() => {
+                          if (userName === fb.username) {
+                            if (
+                              confirm("Are you sure you want to delete this card?")
+                            ) {
+                              if (fb._id) {
+                                deleteCardCard(fb._id);
+                              } else {
+                                alert("Card ID is missing. Cannot delete.");
+                              }
+                            }
                           } else {
-                            alert("Card ID is missing. Cannot delete.");
+                            alert("You can only delete your own card.");
                           }
-                        }
-                      } else {
-                        alert("You can only delete your own card.");
-                      }
-                    }}
-                  >
-                    <TrashIcon className="size-4" aria-hidden />
-                  </button>
+                        }}
+                      >
+                        <TrashIcon className="size-4" aria-hidden />
+                      </button>
+                    </div>
+
+                    <span
+                      className={`rounded-[3px] bg-jira-hover px-1.5 text-xs/5 font-bold text-jira-secondary ${CARD_HOVER_CLASS}`}
+                    >
+                      {/* yy-mm-dd, t.ex. 26-10-19 */}
+                      {fb.submittedAt.substring(2, 10)}
+                    </span>
+                  </div>
 
                   <p
                     className="line-clamp-3 pr-12 leading-5 wrap-anywhere"
@@ -266,10 +278,6 @@ export default function Home() {
                   >
                     {fb.comment}
                   </p>
-
-                  <span className="self-start rounded-[3px] border border-jira-neutral px-1.5 text-xs/5 text-jira-secondary">
-                    {fb.submittedAt.substring(0, 10)}
-                  </span>
 
                   <div className="mt-auto flex items-center gap-1.5">
                     <span
