@@ -1,6 +1,10 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
-import { LayoutItem, ResponsiveGridLayout } from "react-grid-layout";
+import {
+  LayoutItem,
+  ResponsiveGridLayout,
+  useContainerWidth,
+} from "react-grid-layout";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import debounce from "lodash.debounce";
@@ -36,7 +40,6 @@ const DEFAULT_LAYOUT: UserLayout = {
 };
 
 // Måste matcha ResponsiveGridLayout nedan så att rubrikerna linjerar med kolumnerna
-const BOARD_WIDTH = 1200;
 const GRID_MARGIN = 10;
 const HEADER_HEIGHT = 44;
 const ROW_HEIGHT = 150;
@@ -57,6 +60,8 @@ export default function Home() {
   const [layoutLoaded, setLayoutLoaded] = useState(false);
   const [gridLayout, setGridLayout] = useState<LayoutItem[]>([]);
   const [userName, setUserName] = useState("");
+  // Gridden följer boardens bredd så att den fyller skärmen
+  const { width, containerRef, mounted } = useContainerWidth();
 
   // 🔥 Hämta card via api.ts (token-rotation ingår)
   useEffect(() => {
@@ -145,119 +150,121 @@ export default function Home() {
     <div id="cards-container">
       <br />
       <h1 className={styles.title}>Aurell Gira Board</h1>
-      <div className={styles.board} style={{ width: BOARD_WIDTH }}>
-        <div
-          className={styles.lanes}
-          style={{
-            padding: `0 ${GRID_MARGIN}px`,
-            gap: GRID_MARGIN,
-            gridTemplateColumns: `repeat(${BOARD_COLS}, 1fr)`,
-          }}
-        >
-          {DEFAULT_HEADERS.map((h, i) => (
-            <div key={h.key} className={styles.lane}>
-              <span className={styles.laneTitle}>{h.title}</span>
-              <span className={styles.laneCount}>
-                {gridLayout.filter((l) => l.x === i).length}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {!layoutLoaded ? null : cards.length > 0 ? (
-          <ResponsiveGridLayout
-            className="gridLayout"
-            layouts={{ lg: gridLayout }}
-            breakpoints={{ lg: 0 }}
-            cols={{ lg: BOARD_COLS }}
-            rowHeight={ROW_HEIGHT}
-            width={BOARD_WIDTH}
-            margin={[GRID_MARGIN, GRID_MARGIN]}
-            containerPadding={[GRID_MARGIN, HEADER_HEIGHT]}
-            dragConfig={{ cancel: ".no-drag" }}
-            onLayoutChange={(currentLayout) => {
-              setGridLayout([...currentLayout]);
-              const cards = currentLayout.map((l) => ({
-                id: l.i,
-                x: l.x,
-                y: l.y,
-                w: l.w,
-                h: l.h,
-              }));
-
-              persistLayout({ ...userLayout, cards });
+      <div className={styles.boardScroll}>
+        <div ref={containerRef} className={styles.board}>
+          <div
+            className={styles.lanes}
+            style={{
+              padding: `0 ${GRID_MARGIN}px`,
+              gap: GRID_MARGIN,
+              gridTemplateColumns: `repeat(${BOARD_COLS}, 1fr)`,
             }}
           >
-            {cards.map((fb) => (
-              <div
-                key={fb._id || fb.username + fb.submittedAt}
-                className={styles.card}
-              >
-                <button
-                  className={`${styles.deleteButton} no-drag`}
-                  aria-label="Delete card"
-                  title="Delete"
-                  onClick={() => {
-                    if (userName === fb.username) {
-                      if (
-                        confirm("Are you sure you want to delete this card?")
-                      ) {
-                        if (fb._id) {
-                          deleteCardCard(fb._id);
-                        } else {
-                          alert("Card ID is missing. Cannot delete.");
-                        }
-                      }
-                    } else {
-                      alert("You can only delete your own card.");
-                    }
-                  }}
-                >
-                  <FontAwesomeIcon icon={faTrash} />
-                </button>
-
-                <p className={styles.summary} title={fb.comment}>
-                  {fb.comment}
-                </p>
-
-                <span className={styles.dateChip}>
-                  {fb.submittedAt.substring(0, 10)}
+            {DEFAULT_HEADERS.map((h, i) => (
+              <div key={h.key} className={styles.lane}>
+                <span className={styles.laneTitle}>{h.title}</span>
+                <span className={styles.laneCount}>
+                  {gridLayout.filter((l) => l.x === i).length}
                 </span>
-
-                <div className={styles.footer}>
-                  <span className={styles.issueType} title="Task">
-                    <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden>
-                      <path
-                        d="M3 8.5l3 3 7-7"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  <span className={styles.issueKey}>{fb.productId}</span>
-                  <span
-                    className={styles.estimate}
-                    title={`Time tracking: ${fb.rating}/5`}
-                  >
-                    {fb.rating}
-                  </span>
-                  <span
-                    className={styles.avatar}
-                    style={{ background: avatarColor(fb.username) }}
-                    title={fb.username}
-                  >
-                    {fb.username.slice(0, 2).toUpperCase()}
-                  </span>
-                </div>
               </div>
             ))}
-          </ResponsiveGridLayout>
-        ) : (
-          <p className={styles.empty}>No card found.</p>
-        )}
+          </div>
+
+          {!layoutLoaded || !mounted ? null : cards.length > 0 ? (
+            <ResponsiveGridLayout
+              className="gridLayout"
+              layouts={{ lg: gridLayout }}
+              breakpoints={{ lg: 0 }}
+              cols={{ lg: BOARD_COLS }}
+              rowHeight={ROW_HEIGHT}
+              width={width}
+              margin={[GRID_MARGIN, GRID_MARGIN]}
+              containerPadding={[GRID_MARGIN, HEADER_HEIGHT]}
+              dragConfig={{ cancel: ".no-drag" }}
+              onLayoutChange={(currentLayout) => {
+                setGridLayout([...currentLayout]);
+                const cards = currentLayout.map((l) => ({
+                  id: l.i,
+                  x: l.x,
+                  y: l.y,
+                  w: l.w,
+                  h: l.h,
+                }));
+
+                persistLayout({ ...userLayout, cards });
+              }}
+            >
+              {cards.map((fb) => (
+                <div
+                  key={fb._id || fb.username + fb.submittedAt}
+                  className={styles.card}
+                >
+                  <button
+                    className={`${styles.deleteButton} no-drag`}
+                    aria-label="Delete card"
+                    title="Delete"
+                    onClick={() => {
+                      if (userName === fb.username) {
+                        if (
+                          confirm("Are you sure you want to delete this card?")
+                        ) {
+                          if (fb._id) {
+                            deleteCardCard(fb._id);
+                          } else {
+                            alert("Card ID is missing. Cannot delete.");
+                          }
+                        }
+                      } else {
+                        alert("You can only delete your own card.");
+                      }
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+
+                  <p className={styles.summary} title={fb.comment}>
+                    {fb.comment}
+                  </p>
+
+                  <span className={styles.dateChip}>
+                    {fb.submittedAt.substring(0, 10)}
+                  </span>
+
+                  <div className={styles.footer}>
+                    <span className={styles.issueType} title="Task">
+                      <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden>
+                        <path
+                          d="M3 8.5l3 3 7-7"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <span className={styles.issueKey}>{fb.productId}</span>
+                    <span
+                      className={styles.estimate}
+                      title={`Time tracking: ${fb.rating}/5`}
+                    >
+                      {fb.rating}
+                    </span>
+                    <span
+                      className={styles.avatar}
+                      style={{ background: avatarColor(fb.username) }}
+                      title={fb.username}
+                    >
+                      {fb.username.slice(0, 2).toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </ResponsiveGridLayout>
+          ) : (
+            <p className={styles.empty}>No card found.</p>
+          )}
+        </div>
       </div>
 
       {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}

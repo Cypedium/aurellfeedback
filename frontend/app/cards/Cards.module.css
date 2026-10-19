@@ -175,10 +175,16 @@
 }
 
 /* Board med kolumner (To Do, In Progress, Test, Done) */
+.boardScroll {
+  overflow-x: auto;
+}
+
 .board {
   position: relative;
+  width: 100%;
+  min-width: 720px;
   min-height: 480px;
-  margin: 16px auto;
+  margin: 16px 0;
   box-sizing: border-box;
 }
 
