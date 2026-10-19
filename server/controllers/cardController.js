@@ -1,6 +1,7 @@
 // server/controllers/cardController.js
 const Card = require("../models/Card");
 const { isNonEmptyString, isObjectId, isValidDate } = require("../utils/validate");
+const { CARD_STATUSES } = require("../utils/cardStatus");
 
 const COMMENT_MAX_LENGTH = 2000;
 const PRODUCT_ID_MAX_LENGTH = 200;
@@ -82,6 +83,34 @@ exports.update = async (req, res) => {
   } catch (error) {
     console.error("Update card error:", error.message);
     res.status(500).json({ message: "Could not update card." });
+  }
+};
+
+// Any logged-in user may move a card between columns, like in Jira
+exports.updateStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!isObjectId(id)) {
+    return res.status(400).json({ message: "Invalid card id." });
+  }
+  if (typeof status !== "string" || !CARD_STATUSES.includes(status)) {
+    return res.status(400).json({ message: `Status must be one of: ${CARD_STATUSES.join(", ")}.` });
+  }
+
+  try {
+    const card = await Card.findByIdAndUpdate(
+      id,
+      { status },
+      { returnDocument: "after", runValidators: true }
+    ).lean();
+    if (!card) {
+      return res.status(404).json({ message: "Card not found." });
+    }
+    res.status(200).json(card);
+  } catch (error) {
+    console.error("Update card status error:", error.message);
+    res.status(500).json({ message: "Could not update card status." });
   }
 };
 

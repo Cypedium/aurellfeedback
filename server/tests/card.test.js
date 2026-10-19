@@ -2,6 +2,7 @@ jest.mock("../models/Card", () => {
   const Card = jest.fn();
   Card.find = jest.fn();
   Card.findById = jest.fn();
+  Card.findByIdAndUpdate = jest.fn();
   Card.deleteOne = jest.fn();
   return Card;
 });
@@ -23,6 +24,7 @@ describe("auth guard", () => {
     ["get", "/card"],
     ["post", "/card"],
     ["put", `/card/${CARD_ID}`],
+    ["patch", `/card/${CARD_ID}/status`],
     ["delete", `/card/${CARD_ID}`]
   ])("%s %s returns 401 without a token", async (method, path) => {
     const res = await request(app)[method](path);
@@ -126,6 +128,52 @@ describe("PUT /card/:id", () => {
 
     expect(res.status).toBe(400);
     expect(Card.findById).not.toHaveBeenCalled();
+  });
+});
+
+describe("PATCH /card/:id/status", () => {
+  it("lets any logged-in user move a card and returns it", async () => {
+    Card.findByIdAndUpdate.mockReturnValue(query({ _id: CARD_ID, username: "bob", status: "done" }));
+
+    const res = await request(app)
+      .patch(`/card/${CARD_ID}/status`)
+      .set("Authorization", authHeader("alice"))
+      .send({ status: "done" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe("done");
+    expect(Card.findByIdAndUpdate).toHaveBeenCalledWith(CARD_ID, { status: "done" }, expect.any(Object));
+  });
+
+  it("only updates the status, ignoring other fields in the body", async () => {
+    Card.findByIdAndUpdate.mockReturnValue(query({ _id: CARD_ID, status: "test" }));
+
+    await request(app)
+      .patch(`/card/${CARD_ID}/status`)
+      .set("Authorization", authHeader())
+      .send({ status: "test", comment: "hijack", username: "mallory" });
+
+    expect(Card.findByIdAndUpdate.mock.calls[0][1]).toEqual({ status: "test" });
+  });
+
+  it("returns 404 for a missing card", async () => {
+    Card.findByIdAndUpdate.mockReturnValue(query(null));
+
+    const res = await request(app).patch(`/card/${CARD_ID}/status`).set("Authorization", authHeader()).send({ status: "todo" });
+
+    expect(res.status).toBe(404);
+  });
+
+  it.each([
+    ["an unknown status", CARD_ID, { status: "archived" }],
+    ["a non-string status", CARD_ID, { status: { $ne: null } }],
+    ["a missing status", CARD_ID, {}],
+    ["a malformed id", "not-an-id", { status: "todo" }]
+  ])("returns 400 for %s", async (_name, id, body) => {
+    const res = await request(app).patch(`/card/${id}/status`).set("Authorization", authHeader()).send(body);
+
+    expect(res.status).toBe(400);
+    expect(Card.findByIdAndUpdate).not.toHaveBeenCalled();
   });
 });
 

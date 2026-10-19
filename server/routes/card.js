@@ -8,6 +8,7 @@ const auth = require("../middleware/authMiddleware");
 router.get("/", auth, cardController.getAll);
 router.post("/", auth, cardController.create);
 router.put("/:id", auth, cardController.update);
+router.patch("/:id/status", auth, cardController.updateStatus);
 router.delete("/:id", auth, cardController.remove);
 
 module.exports = router;
