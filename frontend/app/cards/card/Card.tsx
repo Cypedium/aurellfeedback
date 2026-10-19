@@ -7,11 +7,15 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import { sv } from 'date-fns/locale/sv';
 import leoProfanity from "leo-profanity";
 import { isAxiosError } from 'axios';
+import { faCalendar } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 
 registerLocale('sv', sv);
 leoProfanity.loadDictionary();
 leoProfanity.loadDictionary('sv');
+
+const PRIORITIES = [1, 2, 3, 4, 5];
 
 export default function Card() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -61,66 +65,111 @@ export default function Card() {
     }
   };
 
-  const handleStarClick = (index: number) => {
-    setRating(index + 1);
-  };
-
   return (
     <form className={styles.formCreate} onSubmit={handleSubmit}>
-      <label className={styles.labelCreate}>Priority:</label>
-      <div className={styles.starRating}>
-        {[...Array(5)].map((_, index) => (
-          <span
-            key={index}
-            className={`${styles.star} ${index < rating ? styles.filled : ''}`}
-            onClick={() => handleStarClick(index)}
-          >
-            ★
+      <header className={styles.header}>
+        <h2 className={styles.title}>Create card</h2>
+        <p className={styles.hint}>
+          Required fields are marked with an asterisk <span className={styles.required}>*</span>
+        </p>
+      </header>
+
+      <div className={styles.body}>
+        <span className={styles.issueTypeRow}>
+          <span className={styles.issueType} aria-hidden>
+            <svg viewBox="0 0 16 16" width="10" height="10">
+              <path
+                d="M3 8.5l3 3 7-7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </span>
-        ))}
-      </div>
+          Task
+        </span>
 
-      <label className={styles.labelCreate}>Issue Key:</label>
-      <textarea
-        value={productId}
-        onChange={(e) => setProductId(e.target.value)}
-        placeholder="Add your product here"
-        required
-        className={styles.textareaCreate}
-      />
-
-      <label className={styles.labelCreate}>Date:</label>
-      <div className={styles.dateBox}>
-        <DatePicker
-          ref={datePickerRef}
-          selected={selectedDate}
-          onChange={(date: Date | null) => setSelectedDate(date)}
-          dateFormat="yyyy-MM-dd"
-          placeholderText="Pick a date"
+        <label className={styles.labelCreate} htmlFor="summary">
+          Summary <span className={styles.required}>*</span>
+        </label>
+        <textarea
+          id="summary"
+          className={styles.textareaCreate}
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="What needs to be done?"
           required
-          locale="sv"
-          className={styles.dateInput}
-          maxDate={new Date()}
         />
-        <span
-          className={styles.dateIcon}
-          onClick={() => datePickerRef.current?.setOpen(true)}
-        >📅</span>
+
+        <label className={styles.labelCreate} htmlFor="issueKey">
+          Issue key <span className={styles.required}>*</span>
+        </label>
+        <input
+          id="issueKey"
+          className={styles.inputCreate}
+          value={productId}
+          onChange={(e) => setProductId(e.target.value)}
+          placeholder="e.g. AGB-12"
+          required
+        />
+
+        <span className={styles.labelCreate} id="priority-label">
+          Priority <span className={styles.required}>*</span>
+        </span>
+        <div className={styles.priority} role="group" aria-labelledby="priority-label">
+          {PRIORITIES.map((p) => (
+            <button
+              key={p}
+              type="button"
+              className={`${styles.priorityOption} ${p === rating ? styles.selected : ''}`}
+              aria-pressed={p === rating}
+              onClick={() => setRating(p)}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+
+        <label className={styles.labelCreate} htmlFor="date">
+          Date <span className={styles.required}>*</span>
+        </label>
+        <div className={styles.dateBox}>
+          <DatePicker
+            ref={datePickerRef}
+            id="date"
+            selected={selectedDate}
+            onChange={(date: Date | null) => setSelectedDate(date)}
+            dateFormat="yyyy-MM-dd"
+            placeholderText="yyyy-mm-dd"
+            required
+            locale="sv"
+            className={styles.dateInput}
+            wrapperClassName={styles.dateWrapper}
+            maxDate={new Date()}
+          />
+          <button
+            type="button"
+            className={styles.dateIcon}
+            aria-label="Open calendar"
+            onClick={() => datePickerRef.current?.setOpen(true)}
+          >
+            <FontAwesomeIcon icon={faCalendar} />
+          </button>
+        </div>
+
+        {message && <p className={styles.message}>{message}</p>}
       </div>
 
-      <label className={styles.labelCreate}>Summary:</label>
-      <textarea
-        className={styles.textareaCreate}
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        required
-      />
-
-      <button className={styles.buttonCreate} type="submit">
-        Submit Card
-      </button>
-
-      {message && <p style={{ marginTop: '12px' }}>{message}</p>}
+      <footer className={styles.footer}>
+        <button type="button" className={styles.buttonCancel} onClick={() => router.back()}>
+          Cancel
+        </button>
+        <button className={styles.buttonCreate} type="submit">
+          Create
+        </button>
+      </footer>
     </form>
   );
 }
