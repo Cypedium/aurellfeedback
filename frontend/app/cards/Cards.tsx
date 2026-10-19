@@ -5,8 +5,7 @@ import {
   ResponsiveGridLayout,
   useContainerWidth,
 } from "react-grid-layout";
-import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { CheckIcon, PencilIcon, TrashIcon } from "@heroicons/react/16/solid";
 import debounce from "lodash.debounce";
 import api from "../api/api"; // ⭐ axios-instansen
 import { deleteCard } from "../api/endpoints";
@@ -234,7 +233,7 @@ export default function Home() {
                       title="Edit"
                       onClick={() => setEditingCard(fb)}
                     >
-                      <FontAwesomeIcon icon={faPen} />
+                      <PencilIcon className="size-4" aria-hidden />
                     </button>
                   )}
 
@@ -258,7 +257,7 @@ export default function Home() {
                       }
                     }}
                   >
-                    <FontAwesomeIcon icon={faTrash} />
+                    <TrashIcon className="size-4" aria-hidden />
                   </button>
 
                   <p
@@ -277,16 +276,7 @@ export default function Home() {
                       className="inline-flex size-4 shrink-0 items-center justify-center rounded-[3px] bg-jira-task text-white"
                       title="Task"
                     >
-                      <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden>
-                        <path
-                          d="M3 8.5l3 3 7-7"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
+                      <CheckIcon className="size-3" aria-hidden />
                     </span>
                     <span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase text-jira-secondary">
                       {fb.productId}
