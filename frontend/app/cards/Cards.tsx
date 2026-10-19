@@ -5,12 +5,13 @@ import {
   ResponsiveGridLayout,
   useContainerWidth,
 } from "react-grid-layout";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import debounce from "lodash.debounce";
 import styles from "./Cards.module.css";
 import api from "../api/api"; // ⭐ axios-instansen
 import { deleteCard } from "../api/endpoints";
+import CardForm from "./card/Card";
 import {
   BoardHeader,
   SavedCardPosition,
@@ -60,6 +61,7 @@ export default function Home() {
   const [layoutLoaded, setLayoutLoaded] = useState(false);
   const [gridLayout, setGridLayout] = useState<LayoutItem[]>([]);
   const [userName, setUserName] = useState("");
+  const [editingCard, setEditingCard] = useState<Card | null>(null);
   // Gridden följer boardens bredd så att den fyller skärmen
   const { width, containerRef, mounted } = useContainerWidth();
 
@@ -136,6 +138,21 @@ export default function Home() {
     saveLayoutToServer(next);
   };
 
+  // Stäng redigeringsdialogen med Escape
+  useEffect(() => {
+    if (!editingCard) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setEditingCard(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editingCard]);
+
+  const handleCardSaved = (updated: Card) => {
+    setCards((prev) => prev.map((fb) => (fb._id === updated._id ? updated : fb)));
+    setEditingCard(null);
+  };
+
   const deleteCardCard = async (id: string) => {
     try {
       await deleteCard(id);
@@ -199,6 +216,17 @@ export default function Home() {
                   key={fb._id || fb.username + fb.submittedAt}
                   className={styles.card}
                 >
+                  {userName === fb.username && fb._id && (
+                    <button
+                      className={`${styles.editButton} no-drag`}
+                      aria-label="Edit card"
+                      title="Edit"
+                      onClick={() => setEditingCard(fb)}
+                    >
+                      <FontAwesomeIcon icon={faPen} />
+                    </button>
+                  )}
+
                   <button
                     className={`${styles.deleteButton} no-drag`}
                     aria-label="Delete card"
@@ -268,6 +296,23 @@ export default function Home() {
       </div>
 
       {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
+
+      {editingCard && (
+        <div
+          className={styles.modalOverlay}
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setEditingCard(null);
+          }}
+        >
+          <div role="dialog" aria-modal="true" aria-labelledby="card-form-title">
+            <CardForm
+              card={editingCard}
+              onSaved={handleCardSaved}
+              onCancel={() => setEditingCard(null)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

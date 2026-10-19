@@ -40,6 +40,10 @@ export const submitCard = (card: NewCard) =>
 
 export const getCards = () => api.get<Card[]>("/card");
 
+// Only the card's author may edit it; the backend returns the updated card
+export const updateCard = (id: string, card: NewCard) =>
+  api.put<Card>(`/card/${id}`, card);
+
 export const deleteCard = (id: string) =>
   api.delete(`/card/${id}`);
 
@@ -52,6 +56,7 @@ export default {
   refreshToken,
   submitCard,
   getCards,
+  updateCard,
   getUsers,
   deleteCard,
 };

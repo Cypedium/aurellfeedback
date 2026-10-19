@@ -6,6 +6,7 @@ const okResponse = { status: 200, data: {} } as never;
 const spies = {
   get: jest.spyOn(api, "get"),
   post: jest.spyOn(api, "post"),
+  put: jest.spyOn(api, "put"),
   delete: jest.spyOn(api, "delete"),
 };
 
@@ -21,6 +22,7 @@ describe("API endpoints", () => {
     ["refreshToken", () => endpoints.refreshToken("rt"), "post", "/auth/refresh"],
     ["getCards", () => endpoints.getCards(), "get", "/card"],
     ["submitCard", () => endpoints.submitCard({ rating: 3, comment: "c", productId: "p", submittedAt: "2026-01-01" }), "post", "/card"],
+    ["updateCard", () => endpoints.updateCard("abc", { rating: 3, comment: "c", productId: "p", submittedAt: "2026-01-01" }), "put", "/card/abc"],
     ["deleteCard", () => endpoints.deleteCard("abc"), "delete", "/card/abc"],
     ["getUsers", () => endpoints.getUsers(), "get", "/user"],
   ] as const)("%s calls %s %s", async (_name, call, method, path) => {
@@ -33,5 +35,11 @@ describe("API endpoints", () => {
     await endpoints.submitCard({ rating: 3, comment: "c", productId: "p", submittedAt: "2026-01-01" });
 
     expect(spies.post.mock.calls[0][1]).not.toHaveProperty("username");
+  });
+
+  it("updateCard never sends a username", async () => {
+    await endpoints.updateCard("abc", { rating: 3, comment: "c", productId: "p", submittedAt: "2026-01-01" });
+
+    expect(spies.put.mock.calls[0][1]).not.toHaveProperty("username");
   });
 });
