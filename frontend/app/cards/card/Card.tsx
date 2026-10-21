@@ -4,24 +4,13 @@ import { useRouter } from 'next/navigation';
 import { submitCard, updateCard, type Card as CardData } from '..//../api/endpoints';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { sv } from 'date-fns/locale/sv';
-import leoProfanity from "leo-profanity";
 import { isAxiosError } from 'axios';
 import { CalendarIcon, CheckIcon } from '@heroicons/react/16/solid';
+import { PRIORITIES, validateCardForm } from '../../utils/cardForm';
+import { FIELD_CLASS, FIELD_FOCUS_CLASS, LABEL_CLASS, SECTION_PADDING } from '../../utils/styles';
 
 
 registerLocale('sv', sv);
-leoProfanity.loadDictionary();
-leoProfanity.loadDictionary('sv');
-
-const PRIORITIES = [1, 2, 3, 4, 5];
-
-// Gemensam stil för fälten
-const FIELD_CLASS =
-  'w-full rounded-[3px] border border-jira-border bg-white text-jira-text transition-[border-color,box-shadow] duration-150 hover:bg-jira-hover';
-const FIELD_FOCUS_CLASS =
-  'focus:border-jira-focus focus:bg-white focus:shadow-[inset_0_0_0_1px_var(--color-jira-focus)] focus:outline-none';
-const LABEL_CLASS = 'mt-4 mb-1 block text-xs font-semibold text-jira-secondary';
-const SECTION_PADDING = 'px-6 max-[480px]:px-4';
 
 type CardProps = {
   // Set when editing an existing card; omitted on the create page
@@ -45,13 +34,9 @@ export default function Card({ card, onSaved, onCancel }: CardProps = {}) {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (leoProfanity.check(comment) || leoProfanity.check(productId)) {
-      setMessage("Your text contains inappropriate language. Please remove it and try again.");
-      return;
-    }
-
-    if (rating < 1) {
-      setMessage('Please select a priority.');
+    const invalid = validateCardForm({ comment, productId, rating });
+    if (invalid) {
+      setMessage(invalid);
       return;
     }
 

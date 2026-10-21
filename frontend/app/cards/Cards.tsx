@@ -1,59 +1,29 @@
 "use client";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import {
-  Layout,
-  ResponsiveGridLayout,
-  useContainerWidth,
-} from "react-grid-layout";
+import { ResponsiveGridLayout, useContainerWidth } from "react-grid-layout";
 import { CheckIcon, PencilIcon, TrashIcon } from "@heroicons/react/16/solid";
 import debounce from "lodash.debounce";
 import api from "../api/api"; // ⭐ axios-instansen
 import { deleteCard, updateCardStatus, type Card } from "../api/endpoints";
 import CardForm from "./card/Card";
 import {
-  BoardHeader,
   CardStatus,
-  SavedCardPosition,
+  UserLayout,
   BOARD_COLS,
   DEFAULT_HEADERS,
+  DEFAULT_LAYOUT,
+  GRID_MARGIN,
+  HEADER_HEIGHT,
+  ROW_HEIGHT,
   buildCardLayout,
+  cardKey,
+  normalizeLayout,
   statusForColumn,
+  toSavedPositions,
 } from "../utils/boardLayout";
-
-type UserLayout = {
-  cols: number;
-  headers: BoardHeader[];
-  cards?: SavedCardPosition[];
-};
-
-const DEFAULT_LAYOUT: UserLayout = {
-  cols: BOARD_COLS,
-  headers: DEFAULT_HEADERS,
-};
-
-// Måste matcha ResponsiveGridLayout nedan så att rubrikerna linjerar med kolumnerna
-const GRID_MARGIN = 10;
-const HEADER_HEIGHT = 44;
-const ROW_HEIGHT = 150;
-
-// Jira-liknande avatarfärger, väljs stabilt per användarnamn
-const AVATAR_COLORS = ["#0052cc", "#00875a", "#ff5630", "#6554c0", "#ff991f", "#00a3bf"];
-
-// Datum, edit- och delete-knappen syns bara när man hovrar över kortet
-const CARD_HOVER_CLASS =
-  "opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100";
-const CARD_ACTION_CLASS = `no-drag rounded-[3px] px-1.5 py-1 text-jira-secondary hover:bg-jira-neutral ${CARD_HOVER_CLASS}`;
-
-const cardKey = (fb: Card, i: number) => fb._id || String(i);
-
-const toSavedPositions = (layout: Layout): SavedCardPosition[] =>
-  layout.map((l) => ({ id: l.i, x: l.x, y: l.y, w: l.w, h: l.h }));
-
-const avatarColor = (name: string) => {
-  let hash = 0;
-  for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) | 0;
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-};
+import { avatarColor, avatarInitials } from "../utils/avatar";
+import { getUsername } from "../utils/session";
+import { CARD_ACTION_CLASS, CARD_HOVER_CLASS } from "../utils/styles";
 
 export default function Home() {
   const [cards, setCards] = useState<Card[]>([]);
@@ -77,23 +47,17 @@ export default function Home() {
       }
     };
 
-    setUserName(localStorage.getItem("username") || "");
+    setUserName(getUsername());
     fetchCards();
   }, []);
 
   // 🔥 Hämta layout från server eller localStorage
   useEffect(() => {
-    // Boarden har alltid de fyra fasta kolumnerna, bara kortpositioner sparas
-    const normalize = (raw: Partial<UserLayout>): UserLayout => ({
-      ...DEFAULT_LAYOUT,
-      cards: raw.cards,
-    });
-
     const loadLayout = async () => {
       try {
         const res = await api.get("/user/layout");
         if (res.status === 200) {
-          setUserLayout(normalize(res.data || {}));
+          setUserLayout(normalizeLayout(res.data || {}));
           return;
         }
       } catch (e) {
@@ -104,7 +68,7 @@ export default function Home() {
 
       try {
         const saved = localStorage.getItem("user_layout");
-        setUserLayout(saved ? normalize(JSON.parse(saved)) : DEFAULT_LAYOUT);
+        setUserLayout(saved ? normalizeLayout(JSON.parse(saved)) : DEFAULT_LAYOUT);
       } catch {
         setUserLayout(DEFAULT_LAYOUT);
       }
@@ -321,7 +285,7 @@ export default function Home() {
                         style={{ background: avatarColor(fb.username) }}
                         title={fb.username}
                       >
-                        {fb.username.slice(0, 2).toUpperCase()}
+                        {avatarInitials(fb.username)}
                       </span>
                     </div>
                   </div>

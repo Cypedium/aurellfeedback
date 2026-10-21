@@ -1,6 +1,7 @@
 'use client';
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { hasSession } from "../utils/session";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -8,11 +9,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const checkAuth = () => {
-      const accessToken = localStorage.getItem("accessToken");
-      const refreshToken = localStorage.getItem("refreshToken");
-
-      // ❌ Om båda saknas → användaren är inte inloggad
-      if (!accessToken && !refreshToken) {
+      // ❌ Ingen token alls → användaren är inte inloggad
+      if (!hasSession()) {
         router.replace("/login");
         setIsAuthenticated(false);
         return;
