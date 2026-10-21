@@ -80,4 +80,4 @@ Schema changes need the user's approval.
 - Branch names: `feature/<desc>`, `fix/<desc>`, `docs/<desc>`, `chore/<desc>` — see "Branch check" above.
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`), small focused commits.
 - Push the branch and open a PR against `main`; never merge it yourself.
-- The GitHub CLI (`gh`) is not installed here. If `gh` is missing, give the user the compare link `https://github.com/Cypedium/aurellfeedback/compare/main...<branch>?expand=1` plus a ready-to-paste title and description.
+- The GitHub CLI (`gh`) is not installed here. If `gh` is missing, give the user the compare link `https://github.com/Cypedium/aurelljiracard/compare/main...<branch>?expand=1` plus a ready-to-paste title and description.
