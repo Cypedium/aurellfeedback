@@ -1,5 +1,6 @@
 'use client';
 import { useState } from "react";
+import { saveSession } from "../utils/session";
 
 export default function LoginForm() {
   const [username, setUsername] = useState("");
@@ -21,12 +22,7 @@ export default function LoginForm() {
         throw new Error(data.message || "Login failed");
       }
 
-      // Spara användarnamn (om du använder det i UI)
-      localStorage.setItem("username", username);
-
-      // ⭐ Spara tokens korrekt
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
+      saveSession(username, data.accessToken, data.refreshToken);
 
       window.location.href = "/cards";
 

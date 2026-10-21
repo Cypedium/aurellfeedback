@@ -4,17 +4,7 @@ import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
 import checkPasswordStrength from "../utils/checkPasswordStrength";
 import { registerUser } from "../api/endpoints";
-
-// Base64 grows ~33%, so this stays under the backend's 1.5 MB data-URL limit
-const MAX_PICTURE_BYTES = 1024 * 1024;
-
-const readAsDataUrl = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
+import { readAsDataUrl, validateRegistration } from "../utils/register";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -27,18 +17,9 @@ export default function RegisterForm() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!username || !password) {
-      setError("Both fields are required.");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
-
-    if (pictureFile && pictureFile.size > MAX_PICTURE_BYTES) {
-      setError("Profile picture must be smaller than 1 MB.");
+    const invalid = validateRegistration(username, password, pictureFile);
+    if (invalid) {
+      setError(invalid);
       return;
     }
 

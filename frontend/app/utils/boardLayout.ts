@@ -14,6 +14,34 @@ export const DEFAULT_HEADERS: BoardHeader[] = [
 
 export const BOARD_COLS = DEFAULT_HEADERS.length;
 
+// Måste matcha ResponsiveGridLayout så att rubrikerna linjerar med kolumnerna
+export const GRID_MARGIN = 10;
+export const HEADER_HEIGHT = 44;
+export const ROW_HEIGHT = 150;
+
+export type UserLayout = {
+  cols: number;
+  headers: BoardHeader[];
+  cards?: SavedCardPosition[];
+};
+
+export const DEFAULT_LAYOUT: UserLayout = {
+  cols: BOARD_COLS,
+  headers: DEFAULT_HEADERS,
+};
+
+// Boarden har alltid de fyra fasta kolumnerna, bara kortpositioner sparas
+export const normalizeLayout = (raw: Partial<UserLayout>): UserLayout => ({
+  ...DEFAULT_LAYOUT,
+  cards: raw.cards,
+});
+
+export const cardKey = (card: { _id?: string }, index: number): string =>
+  card._id || String(index);
+
+export const toSavedPositions = (layout: readonly CardPosition[]): SavedCardPosition[] =>
+  layout.map((l) => ({ id: l.i, x: l.x, y: l.y, w: l.w, h: l.h }));
+
 // Okänd eller saknad status (äldre kort) hamnar i To Do
 export const columnForStatus = (status?: string): number =>
   Math.max(0, DEFAULT_HEADERS.findIndex((h) => h.key === status));

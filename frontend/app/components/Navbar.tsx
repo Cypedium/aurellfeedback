@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { handleLogout } from '../utils/logout';
+import { getUsername, hasSession } from '../utils/session';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const Navbar = () => {
@@ -13,8 +14,8 @@ const Navbar = () => {
 
   // Re-check on every navigation so login/logout is reflected immediately
   useEffect(() => {
-    setIsLoggedIn(Boolean(localStorage.getItem('accessToken') || localStorage.getItem('refreshToken')));
-    setUserName(localStorage.getItem('username') || '');
+    setIsLoggedIn(hasSession());
+    setUserName(getUsername());
   }, [pathname]);
 
   return (

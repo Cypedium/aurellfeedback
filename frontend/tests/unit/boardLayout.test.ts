@@ -2,10 +2,37 @@ import { describe, expect, it } from "@jest/globals";
 import {
   BOARD_COLS,
   DEFAULT_HEADERS,
+  DEFAULT_LAYOUT,
   buildCardLayout,
+  cardKey,
   columnForStatus,
+  normalizeLayout,
   statusForColumn,
+  toSavedPositions,
 } from "../../app/utils/boardLayout";
+
+describe("normalizeLayout", () => {
+  it("always uses the fixed columns and keeps only saved card positions", () => {
+    const cards = [{ id: "a", x: 1, y: 0, w: 1, h: 1 }];
+    expect(normalizeLayout({ cols: 12, headers: [], cards })).toEqual({ ...DEFAULT_LAYOUT, cards });
+    expect(normalizeLayout({})).toEqual({ ...DEFAULT_LAYOUT, cards: undefined });
+  });
+});
+
+describe("cardKey", () => {
+  it("uses the id, or the index for cards without one", () => {
+    expect(cardKey({ _id: "abc" }, 3)).toBe("abc");
+    expect(cardKey({}, 3)).toBe("3");
+  });
+});
+
+describe("toSavedPositions", () => {
+  it("maps grid items to saved positions", () => {
+    expect(toSavedPositions([{ i: "a", x: 2, y: 1, w: 1, h: 1 }])).toEqual([
+      { id: "a", x: 2, y: 1, w: 1, h: 1 },
+    ]);
+  });
+});
 
 describe("DEFAULT_HEADERS", () => {
   it("is To Do, In Progress, Test, Done", () => {
